@@ -32,9 +32,60 @@ function salir {
 }
 
 #Bloque de control de errores
-function controlerrores ($error) {
+function controlErrores ($error) {
 	case $error in
-	
+	0)
+		echo "Ejecución satisfactoria";;
+	2)
+		echo "Error de protocolo.";;
+	3)
+		echo "Tiempo límite excedido";;
+	4)
+		echo "Tamaño límite excedido";;
+	7)
+		echo "Método de autenticación no soportado.";;
+	8)
+		echo "Se requiere un método de autenticación más seguro.";;
+	13)
+		echo "Los datos deben de estar protegidos.";;
+	14)
+		echo "Reenviar petición para continuar con el método de autenticación.";;
+	16)
+		echo "Esa entrada no contiene el atributo especificado.";;
+	17)
+		echo "Atributo indefinido.";;
+	20)
+		echo "Dicho atributo ya existe.";;
+	21)
+		echo "El atributo especificado no corresponde con su sintaxis.";;
+	32)
+		echo "No existe el objeto especificado.";;
+	34)
+		echo "DN inválido.";;
+	48)
+		echo "Método de autenticación no válido.";;
+	49)
+		echo "Credenciales inválidas.";;
+	50)
+		echo "Permisos insuficientes.";;
+	51)
+		echo "Servidor ocupado.";;
+	52)
+		echo "Servidor no disponible";;
+	64)
+		echo "Nombre de entrada no válido.";;
+	65)
+		echo "Tipo de objeto no válido.";;
+	68)
+		echo "Dicha entrada ya existe.";;
+	69)
+		echo "No está permitido cambiar el tipo de objeto.";;
+	80)
+		echo "Error interno del servidor.";;
+	*)
+		echo "Error.";;
+	esac;
+}
 
 
 #Definición de colores
@@ -360,9 +411,9 @@ case $opcion in
 2)
 	echo "Has elegido eliminar un objeto.";
 	eliminar;;
-#3)
-#	echo "Has elegido modificar un objeto.";
-#	modificar;;
+3)
+	echo "Has elegido modificar un objeto.";
+	modificar;;
 4)
 	salir;;
 *)
