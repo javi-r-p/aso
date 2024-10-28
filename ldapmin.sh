@@ -116,11 +116,13 @@ creatorsName=${creatorsName%%,*}
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
 echo -e "${nciani}-----${fincolor} "
 read -s -p "Contraseña del administrador de LDAP: " contrasenia #Preguntar por la contraseña del administrador de OpenLDAP.
-echo -e "\n${ciani}-----${fincolor}"
+clear
+echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
+echo -e "${ciani}-----${fincolor}"
 echo -e "${azuli}Opciones${fincolor}"
 echo -e "${verdei}1: Crear un objeto.${fincolor}"
 echo -e "${rojoi}2: Eliminar un objeto.${fincolor}"
-#echo -e "${azuli}3: Modificar un objeto.${fincolor}"
+echo -e "${azuli}3: Modificar un objeto.${fincolor}"
 echo -e "${fnrojoi}4: Salir.${fincolor}"
 read -p "Introduce un número: " opcion
 
@@ -222,8 +224,8 @@ function crear {
 			else
 				salir
 			fi;
-		else
-			controlerrores($?);
+#		else
+#			controlerrores($?);
 		fi;
 	}
 	function crearGrupo {
