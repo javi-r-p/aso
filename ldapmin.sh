@@ -32,7 +32,8 @@ function salir {
 }
 
 #Bloque de control de errores
-function controlErrores ($error) {
+function controlErrores() {
+	error=$1
 	case $error in
 	0)
 		echo "Ejecución satisfactoria";;
