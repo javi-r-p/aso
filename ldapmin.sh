@@ -318,12 +318,14 @@ function eliminar {
 		do
 			echo "El término que has introducido no corresponde a ningún grupo del dominio. Inténtalo de nuevo."
 		done
-		busquedaHijos=$(ldapsearch -xLLL -b $dominio cn=$nombre -s children dn uid givenName)
-		if [ -z "$busquedaHijos" ]; then
+		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio (&(cn=$nombre)(objectClass=posixGroup)) gidNumber | grep "gidNumber"`
+		busquedaGidGrupo=${busqueda/gidNumber: /}
+		busquedaUsuarios=`ldapsearch -xLLL -b $dominio (&(gidNumber=$busquedaGidGrupo)(objectClass=posixAccount))`
+		if [ -z "$busquedaUsuarios" ]; then
 			echo "Este grupo no tiene ningún objeto hijo."
 		else
 			echo "El grupo que has especificado tiene hijos. Son los siguientes:"
-			for objeto in $busquedaHijos; do
+			for objeto in $busquedaUsuarios; do
 				echo "$objeto"
 				echo " ----- "
 			done;
