@@ -29,16 +29,33 @@ touch /tmp/logs/eliminarObjeto.log
 touch /tmp/logs/modificarObjeto.log
 clear
 
+#Definición de colores
+fincolor='\e[0m'	    	#Eliminar color
+namarillo='\033[1;33m'      #Amarillo negrita
+bcian='\033[1;36m'          #Cián negrita
+amarilloi='\033[0;93m'      #Amarillo intenso
+rojoi='\033[0;91m'          #Rojo intenso
+verdei='\033[0;92m'         #Verde intenso
+azuli='\033[0;94m'          #Azul intenso
+ciani='\033[0;96m'          #Cián intenso
+nciani='\033[1;96m'         #Cián intenso y negrita
+fnrojoi='\033[0;101m'       #Fondo rojo e intenso
+
 #Función de salida
-function salir {
-	echo "Programa finalizado."
-	exit
+function salir() {
+	if [ "$1" = "0" ]; then
+		echo -e "${verdei}Programa finalizado.${fincolor}"
+		exit 0
+	else
+		echo -e "${rojoi}Programa finalizado.${fincolor}"
+		exit $1
+	fi
 }
 
 #Función de control de errores
 function controlErrores() {
-	error=$1
-	case $error in
+	echo -e "${fnrojoi}ERROR${fincolor}"
+	case $1 in
 	2)
 		echo "Error de protocolo. (2)";;
 	3)
@@ -89,19 +106,6 @@ function controlErrores() {
 		echo "Error.";;
 	esac
 }
-
-
-#Definición de colores
-fincolor='\e[0m'	    	#Eliminar color
-namarillo='\033[1;33m'      #Amarillo negrita
-bcian='\033[1;36m'          #Cián negrita
-amarilloi='\033[0;93m'      #Amarillo intenso
-rojoi='\033[0;91m'          #Rojo intenso
-verdei='\033[0;92m'         #Verde intenso
-azuli='\033[0;94m'          #Azul intenso
-ciani='\033[0;96m'          #Cián intenso
-nciani='\033[1;96m'         #Cián intenso y negrita
-fnrojoi='\033[0;101m'       #Fondo rojo e intenso
 
 #Obtener nombre de dominio, formato DN y DNS
 dominio=`slapcat | head -n 1`
@@ -155,11 +159,11 @@ function crear {
 			if [ "$mostrar" = "s" ]; then
 				ldapsearch -xLLL -b $dominio ou=$nombre
 			else
-				salir
+				salir $codError
 			fi
 		else
 			controlErrores $codError
-			salir
+			salir $codError
 		fi
 	}
 
@@ -234,11 +238,11 @@ function crear {
 			if [ "$mostrar" = "s" ]; then
 				ldapsearch -xLLL -b $dominio uid=$uid
 			else
-				salir
+				salir $codError
 			fi
 		else
 			controlErrores $codError
-			salir
+			salir $codError
 		fi
 	}
 	function crearGrupo {
@@ -255,8 +259,6 @@ function crear {
 				echo "objectClass: top" >> /tmp/objetos/ou.ldif
 				echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
 				echo "ou: $nombre" >> /tmp/objetos/ou.ldif
-			else
-				break
 			fi
 		done
 		#Recuperar GID del último grupo.
@@ -276,11 +278,11 @@ function crear {
 			if [ "$mostrar" = "s" ]; then
 				ldapsearch -xLLL -b $dominio cn=$cn
 			else
-				salir
+				salir $codError
 			fi
 		else
 			controlErrores $codError
-			salir
+			salir $codError
 		fi
 	}
 	case $objetoSeleccionado in
@@ -356,7 +358,7 @@ function eliminar {
 				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
 			else
 				echo "El grupo $nombre tiene hijos. Si quieres eliminarlo deberás eliminar primero los hijos o moverlos a otro grupo."
-				salir
+				salir $codError
 			fi
 		fi
 	}
@@ -372,7 +374,7 @@ function eliminar {
 		eliminarGrupo;;
 	*)
 		echo "No has seleccionado una opción válida"
-		salir;;
+		salir 1;;
 	esac
 }
 #Función para la opción número tres: modificar objetos.
@@ -404,12 +406,28 @@ function modificar {
 		do
 			echo "El término que has introducido no corresponde a ningún usuario del dominio. Inténtalo de nuevo."
 		done
-		read -p "¿Qué atributo deseas modificar? Puedes modificar los siguientes:"
+		busquedaUsuario=`ldapsearch -xLLL -b $dominio objectClass=inetOrgPerson`
+		echo "Puedes modificar los siguientes atributos:"
 		echo "1. Nombre de usuario."
 		echo "2. Nombre."
 		echo "3. Apellidos."
 		echo "4. Contraseña."
 		echo "5. Grupo al que pertenece."
+		read -p "¿Qué atributo quieres modificar?" atributo
+		case $atributo in
+		1)
+			echo "Has elegido modificar el nombre de usuario.";;
+		2)
+			echo "Has elegido modificar el nombre.";;
+		3)
+			echo "Has elegido modificar los apellidos.";;
+		4)
+			echo "Has elegido modificar la contraseña.";;
+		5)
+			echo "Has elegido cambiar el grupo al que pertenece el usuario.";;
+		*)
+			echo "No has seleccionado una opción válida.";;
+		esac
 	}
 #	function modificarGrupo {
 
@@ -442,8 +460,8 @@ case $opcion in
 	echo "Has elegido modificar un objeto."
 	modificar;;
 4)
-	salir;;
+	salir 0;;
 *)
 	echo "No has seleccionado una opción válida."
-	salir;;
+	salir 1;;
 esac
