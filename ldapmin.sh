@@ -4,7 +4,7 @@
 #si no, mostrar un mensaje
 comprobarSlapd=`dpkg -l | grep "slapd"`
 comprobarLdaputils=`dpkg -l | grep "ldap-utils"`
-if [ -z "$comprobarSlapd" ] && [ -z "$comprobarLdaputils" ]; then
+if [ -z "$comprobarSlapd" ] || [ -z "$comprobarLdaputils" ]; then
 	echo "Es posible que uno de los paquetes no esté instalado. Instálalo y vuelve a ejecutar el script."
 	exit 1
 fi
@@ -120,7 +120,12 @@ adminLDAP=${adminLDAP/creatorsName: /}
 #Menú de opciones
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
 echo -e "${nciani}-----${fincolor} "
-read -s -p "Contraseña del administrador de LDAP: " contrasenia #Preguntar por la contraseña del administrador de OpenLDAP.
+while
+	read -s -p "Contraseña del administrador de LDAP: " contrasenia #Preguntar por la contraseña del administrador de OpenLDAP.
+	[ -z "$contrasenia" ]
+do
+	echo "Debes introducir una contraseña."
+done
 clear
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
 echo -e "${ciani}-----${fincolor}"
