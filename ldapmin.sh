@@ -1,4 +1,4 @@
-#Script desarrollado para agilizar la creación de objetos en OpenLDAP.
+#Script desarrollado para facilitar la administración de objetos de OpenLDAP.
 
 #Comprobar que los paquetes slapd y ldaputils están instalados,
 #si no, mostrar un mensaje
@@ -7,14 +7,18 @@ comprobarLdaputils=`dpkg -l | grep "ldap-utils"`
 if [ -z "$comprobarSlapd" ] && [ -z "$comprobarLdaputils" ]; then
 	echo "Es posible que uno de los paquetes no esté instalado. Instálalo y vuelve a ejecutar el script."
 	exit 1
-fi;
+fi
 
 #Comprobar que el usuario que está ejecutando el script sea root,
 #si no lo fuera, finalizar el programa.
 if [ "$EUID" != "0" ]; then
 	echo "El script debe ser ejecutado por el usuario root."
 	exit 1
-fi;
+fi
+
+if [ "$SHELL" != "/bin/bash" ]; then
+	echo "El script debe de ejecutarse mediante el intérprete de comandos BASH. Ahora estás usando el intérprete $SHELL."
+fi
 
 #Tareas previas: creación de directorios y archivos temporales (en /tmp).
 #Estos directorios y archivos se eliminan con cada inicio del sistema.
@@ -27,65 +31,63 @@ clear
 
 #Función de salida
 function salir {
-	echo "Programa finalizado";
-	exit;
+	echo "Programa finalizado."
+	exit
 }
 
-#Bloque de control de errores
+#Función de control de errores
 function controlErrores() {
 	error=$1
 	case $error in
-	0)
-		echo "Ejecución satisfactoria";;
 	2)
-		echo "Error de protocolo.";;
+		echo "Error de protocolo. (2)";;
 	3)
-		echo "Tiempo límite excedido";;
+		echo "Tiempo límite excedido. (3)";;
 	4)
-		echo "Tamaño límite excedido";;
+		echo "Tamaño límite excedido. (4)";;
 	7)
-		echo "Método de autenticación no soportado.";;
+		echo "Método de autenticación no soportado. (7)";;
 	8)
-		echo "Se requiere un método de autenticación más seguro.";;
+		echo "Se requiere un método de autenticación más seguro. (8)";;
 	13)
-		echo "Los datos deben de estar protegidos.";;
+		echo "Los datos deben de estar protegidos. (13)";;
 	14)
-		echo "Reenviar petición para continuar con el método de autenticación.";;
+		echo "Reenviar petición para continuar con el método de autenticación. (14)";;
 	16)
-		echo "Esa entrada no contiene el atributo especificado.";;
+		echo "Esa entrada no contiene el atributo especificado. (16)";;
 	17)
-		echo "Atributo indefinido.";;
+		echo "Atributo indefinido. (17)";;
 	20)
-		echo "Dicho atributo ya existe.";;
+		echo "Dicho atributo ya existe. (20)";;
 	21)
-		echo "El atributo especificado no corresponde con su sintaxis.";;
+		echo "El atributo especificado no corresponde con su sintaxis. (21)";;
 	32)
-		echo "No existe el objeto especificado.";;
+		echo "No existe el objeto especificado. (32)";;
 	34)
-		echo "DN inválido.";;
+		echo "DN inválido. (34)";;
 	48)
-		echo "Método de autenticación no válido.";;
+		echo "Método de autenticación no válido. (48)";;
 	49)
-		echo "Credenciales inválidas.";;
+		echo "Credenciales inválidas. (49)";;
 	50)
-		echo "Permisos insuficientes.";;
+		echo "Permisos insuficientes. (50)";;
 	51)
-		echo "Servidor ocupado.";;
+		echo "Servidor ocupado. (51)";;
 	52)
-		echo "Servidor no disponible";;
+		echo "Servidor no disponible. (52)";;
 	64)
-		echo "Nombre de entrada no válido.";;
+		echo "Nombre de entrada no válido. (64)";;
 	65)
-		echo "Tipo de objeto no válido.";;
+		echo "Tipo de objeto no válido. (65)";;
 	68)
-		echo "Dicha entrada ya existe.";;
+		echo "Dicha entrada ya existe. (68)";;
 	69)
-		echo "No está permitido cambiar el tipo de objeto.";;
+		echo "No está permitido cambiar el tipo de objeto. (69)";;
 	80)
-		echo "Error interno del servidor.";;
+		echo "Error interno del servidor. (80)";;
 	*)
 		echo "Error.";;
-	esac;
+	esac
 }
 
 
@@ -144,7 +146,7 @@ function crear {
 		echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
 		echo "ou: $nombre" >> /tmp/objetos/ou.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObject.log
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObject.log 2> /dev/null
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Unidad organizativa creada."
@@ -154,11 +156,11 @@ function crear {
 				ldapsearch -xLLL -b $dominio ou=$nombre
 			else
 				salir
-			fi;
+			fi
 		else
 			controlErrores $codError
 			salir
-		fi;
+		fi
 	}
 
 	#Crear usuario
@@ -183,13 +185,13 @@ function crear {
 			intGid=$((intGid+1))
 			echo "gidNumber: $intGid" >> /tmp/objetos/gid.ldif
 			date >> /tmp/logs/crearObjetos.log
-			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
 		else
 			#Añadir usuario al grupo ya existente.
 			echo "El grupo $nombreGrupo se ha encontrado. El usuario $uid pertenecerá a dicho grupo."
 			consultaGid=`ldapsearch -xLLL -b $dominio "(&(cn=$nombreGrupo)(objectClass=posixGroup))" | grep "gidNumber"`
 			intGid=${consultaGid/gidNumber: /}
-		fi;
+		fi
 		#Recuperar UID con el valor más alto.
 		consultaUid=`ldapsearch -xLLL -b $dominio "objectClass=inetOrgPerson" | grep "uidNumber" | tail -n 1`
 		intUid=${consultaUid/uidNumber: /}
@@ -223,7 +225,7 @@ function crear {
 		echo "mail: $uid@$dominioDns" >> /tmp/objetos/uid.ldif
 		date >> /tmp/logs/crearObjetos.log
 		#Ejecución del archivo LDIF.
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Usuario creado."
@@ -233,15 +235,14 @@ function crear {
 				ldapsearch -xLLL -b $dominio uid=$uid
 			else
 				salir
-			fi;
+			fi
 		else
-			controlerrores $codError
+			controlErrores $codError
 			salir
-		fi;
+		fi
 	}
 	function crearGrupo {
 		read -p "Nombre: " cn
-		read -p "Identificador numérico del grupo: " gid
 		while
 			read -p "Unidad organizativa a la que pertenece el grupo: " ou
 			consultaOU=`ldapsearch -xLLL -b $dominio ou=$ou`
@@ -258,12 +259,15 @@ function crear {
 				break
 			fi
 		done
+		#Recuperar GID del último grupo.
+		ultimoGid=`ldapsearch -xLLL -b $dominio objectClass=posixGroup | grep "gidNumber" | tail -n 1`
+		intUltimoGid=${ultimoGid/gidNumber: /}
 		echo "dn: cn=$cn,ou=$ou,$dominio" > /tmp/objetos/gid.ldif
 		echo "objectClass: posixGroup" >> /tmp/objetos/gid.ldif
 		echo "cn: $cn" >> /tmp/objetos/gid.ldif
-		echo "gidNumber: $gid" >> /tmp/objetos/gid.ldif
+		echo "gidNumber: $intUltimoGid" >> /tmp/objetos/gid.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Grupo creado."
@@ -273,23 +277,23 @@ function crear {
 				ldapsearch -xLLL -b $dominio cn=$cn
 			else
 				salir
-			fi;
+			fi
 		else
 			controlErrores $codError
 			salir
-		fi;
+		fi
 	}
 	case $objetoSeleccionado in
 	1)
 		echo "Crear una unidad organizativa."
 		crearUO;;
 	2)
-		echo "Crear un usuario.";
+		echo "Crear un usuario."
 		crearUsuario;;
 	3)
-		echo "Crear un grupo.";
+		echo "Crear un grupo."
 		crearGrupo;;
-	esac;
+	esac
 }
 
 #Función para la opción número dos: eliminar objetos.
@@ -311,10 +315,10 @@ function eliminar {
 		echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
 		read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
 		if [ "$eliminarHijos" = "s" ]; then
-			ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
+			ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
 		else
 			echo "La unidad organizativa $nombre tiene hijos. Si quieres eliminarla deberás eliminar primero los hijos o moverlos a otra unidad organizativa."
-		fi;
+		fi
 	}
 	function eliminarUsuario {
 		while
@@ -325,7 +329,7 @@ function eliminar {
 		do
 			echo "El término que has introducido no corresponde a ningún usuario de este dominio. Inténtalo de nuevo."
 		done
-		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
+		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
 	}
 	function eliminarGrupo {
 		while
@@ -349,27 +353,27 @@ function eliminar {
 			done;
 			read -p "¿Quieres eliminar a los usuarios pertenecientes al grupo? (s/n) " eliminarHijos
 			if [ "$eliminarHijos" = "s" ]; then
-				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
+				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
 			else
 				echo "El grupo $nombre tiene hijos. Si quieres eliminarlo deberás eliminar primero los hijos o moverlos a otro grupo."
 				salir
-			fi;
-		fi;
+			fi
+		fi
 	}
 	case $objetoSeleccionado in
 	1)
-		echo "Eliminar una unidad organizativa";
+		echo "Eliminar una unidad organizativa"
 		eliminarUO;;
 	2)
-		echo "Eliminar un usuario";
+		echo "Eliminar un usuario"
 		eliminarUsuario;;
 	3)
-		echo "Eliminar un grupo";
+		echo "Eliminar un grupo"
 		eliminarGrupo;;
 	*)
-		echo "No has seleccionado una opción válida";
+		echo "No has seleccionado una opción válida"
 		salir;;
-	esac;
+	esac
 }
 #Función para la opción número tres: modificar objetos.
 function modificar {
@@ -412,34 +416,34 @@ function modificar {
 #	}
 	case $objetoSeleccionado in
 	1)
-		echo "Modificar una unidad organizativa";
+		echo "Modificar una unidad organizativa"
 		modificarUO;;
 	2)
-		echo "Modificar un usuario";
+		echo "Modificar un usuario"
 		modificarUsuario;;
 	3)
-		echo "Modificar un grupo";
+		echo "Modificar un grupo"
 		modificarGrupo;;
 	*)
-		echo "No has seleccionado una opción válida";
+		echo "No has seleccionado una opción válida"
 		salir;;
-	esac;
+	esac
 }
 
 #Condicionales
 case $opcion in
 1)
-	echo "Has elegido crear un objeto";
+	echo "Has elegido crear un objeto"
 	crear;;
 2)
-	echo "Has elegido eliminar un objeto.";
+	echo "Has elegido eliminar un objeto."
 	eliminar;;
 3)
-	echo "Has elegido modificar un objeto.";
+	echo "Has elegido modificar un objeto."
 	modificar;;
 4)
 	salir;;
 *)
-	echo "No has seleccionado una opción válida.";
+	echo "No has seleccionado una opción válida."
 	salir;;
-esac;
+esac
