@@ -108,9 +108,8 @@ dominioDns=${dominio/dc=/}
 dominioDns=${dominioDns/,dc=/.}
 
 #Obtener nombre del administrador de OpenLDAP
-creatorsName="cn=admin,dc=javi,dc=local"
-creatorsName=${creatorsName#"creatorsName: "}
-creatorsName=${creatorsName%%,*}
+adminLDAP=`slapcat | head -n 9 | tail -n 1`
+adminLDAP=${adminLDAP/creatorsName: /}
 
 #Menú de opciones
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
@@ -130,11 +129,14 @@ read -p "Introduce un número: " opcion
 #Función para la opción número uno: crear objetos.
 function crear {
 
+	#Selección del tipo de objeto que se creará
 	echo -e "${rojoi}-----${fincolor}"
 	echo -e "${amarilloi}1: Unidad organizativa${fincolor}"
 	echo -e "${amarilloi}2: Usuario${fincolor}"
 	echo -e "${amarilloi}3: Grupo${fincolor}"
 	read -p "¿Qué objeto quieres crear? " objetoSeleccionado
+
+	#Crear unidad organizativa
 	function crearUO {
 		read -p "Nombre: " nombre
 		echo "dn: ou=$nombre,$dominio" > /tmp/objetos/ou.ldif
@@ -142,17 +144,24 @@ function crear {
 		echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
 		echo "ou: $nombre" >> /tmp/objetos/ou.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP,$dominio -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObject.log
-		if [ "$?" = "0" ]; then
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObject.log
+		codError=$?
+		if [ "$codError" = "0" ]; then
 			echo "Unidad organizativa creada."
+			#Preguntar si se quiere ver la información del usuario.
 			read -p "¿Quieres ver la información de la unidad organizativa $name? (s/n) " mostrar
 			if [ "$mostrar" = "s" ]; then
 				ldapsearch -xLLL -b $dominio ou=$nombre
 			else
 				salir
 			fi;
+		else
+			controlErrores $codError
+			salir
 		fi;
 	}
+
+	#Crear usuario
 	function crearUsuario {
 		read -p "Nombre de usuario: " uid
 		read -p "Nombre: " nombrePila
@@ -174,7 +183,7 @@ function crear {
 			intGid=$((intGid+1))
 			echo "gidNumber: $intGid" >> /tmp/objetos/gid.ldif
 			date >> /tmp/logs/crearObjetos.log
-			ldapadd -x -D $adminLDAP,$dominio -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
 		else
 			#Añadir usuario al grupo ya existente.
 			echo "El grupo $nombreGrupo se ha encontrado. El usuario $uid pertenecerá a dicho grupo."
@@ -214,18 +223,20 @@ function crear {
 		echo "mail: $uid@$dominioDns" >> /tmp/objetos/uid.ldif
 		date >> /tmp/logs/crearObjetos.log
 		#Ejecución del archivo LDIF.
-		ldapadd -x -D $adminLDAP,$dominio -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log
-		#Preguntar si se quiere ver la información del usuario.
-		if [ "$?" = "0" ]; then
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log
+		codError=$?
+		if [ "$codError" = "0" ]; then
 			echo "Usuario creado."
+			#Preguntar si se quiere ver la información del usuario.
 			read -p "¿Quieres ver la información del usuario $givenName? (s/n) " mostrar
 			if [ "$mostrar" = "s" ]; then
 				ldapsearch -xLLL -b $dominio uid=$uid
 			else
 				salir
 			fi;
-#		else
-#			controlerrores($?);
+		else
+			controlerrores $codError
+			salir
 		fi;
 	}
 	function crearGrupo {
@@ -252,12 +263,19 @@ function crear {
 		echo "cn: $cn" >> /tmp/objetos/gid.ldif
 		echo "gidNumber: $gid" >> /tmp/objetos/gid.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP,$dominio -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
-		echo "Grupo creado."
-		read -p "¿Quieres ver la información del grupo $cn? (s/n) " mostrar
-		if [ "$mostrar" = "s" ]; then
-			ldapsearch -xLLL -b $dominio cn=$cn
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log
+		codError=$?
+		if [ "$codError" = "0" ]; then
+			echo "Grupo creado."
+			#Preguntar si se quiere ver la información del grupo.
+			read -p "¿Quieres ver la información del grupo $cn? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio cn=$cn
+			else
+				salir
+			fi;
 		else
+			controlErrores $codError
 			salir
 		fi;
 	}
@@ -293,7 +311,7 @@ function eliminar {
 		echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
 		read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
 		if [ "$eliminarHijos" = "s" ]; then
-			ldapdelete -x -r -w $contrasenia -D "$adminLDAP,$dominio" "$rutaObjeto"
+			ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
 		else
 			echo "La unidad organizativa $nombre tiene hijos. Si quieres eliminarla deberás eliminar primero los hijos o moverlos a otra unidad organizativa."
 		fi;
@@ -307,7 +325,7 @@ function eliminar {
 		do
 			echo "El término que has introducido no corresponde a ningún usuario de este dominio. Inténtalo de nuevo."
 		done
-		ldapdelete -x -w $contrasenia -D "$adminLDAP,$dominio" "$rutaObjeto"
+		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
 	}
 	function eliminarGrupo {
 		while
@@ -331,7 +349,7 @@ function eliminar {
 			done;
 			read -p "¿Quieres eliminar a los usuarios pertenecientes al grupo? (s/n) " eliminarHijos
 			if [ "$eliminarHijos" = "s" ]; then
-				ldapdelete -x -r -w $contrasenia -D "$adminLDAP,$dominio" "$rutaObjeto"
+				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto"
 			else
 				echo "El grupo $nombre tiene hijos. Si quieres eliminarlo deberás eliminar primero los hijos o moverlos a otro grupo."
 				salir
