@@ -15,18 +15,12 @@ fnrojoi='\033[0;101m'       #Fondo rojo e intenso
 
 #Función de salida
 function salir() {
-	if [ $1 = 0 ]; then
+	if [ $codError = 0 ]; then
 		echo -e "${verdei}Programa finalizado${fincolor}"
 	else
 		echo -e "${rojoi}Programa finalizado${fincolor}"
 	fi
 }
-
-#Comprueba que el usuario que ejecuta el script es el usuario root. Si no lo es, se llama a la función SALIR con código 1
-if [ $EUID != 0 ]; then
-	echo "El script debe ser ejecutado como root."
-	salir 1
-fi
 
 #Mensaje de bienvenida y recogida de datos.
 echo "Unión de cliente Ubuntu a un dominio OpenLDAP"
