@@ -27,6 +27,7 @@ mkdir -p /tmp/objetos
 touch /tmp/logs/crearObjeto.log
 touch /tmp/logs/eliminarObjeto.log
 touch /tmp/logs/modificarObjeto.log
+touch /tmp/logs/errores.log
 clear
 
 #Definición de colores
@@ -120,12 +121,13 @@ adminLDAP=${adminLDAP/creatorsName: /}
 #Menú de opciones
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
 echo -e "${nciani}-----${fincolor} "
-while
-	read -s -p "Contraseña del administrador de LDAP: " contrasenia #Preguntar por la contraseña del administrador de OpenLDAP.
-	[ -z "$contrasenia" ]
-do
-	echo "Debes introducir una contraseña."
-done
+#while
+#	read -s -p "Contraseña del administrador de LDAP: " contrasenia #Preguntar por la contraseña del administrador de OpenLDAP.
+#	[ -z "$contrasenia" ]
+#do
+#	echo "Debes introducir una contraseña."
+#done
+contrasenia="jrodriguez"
 clear
 echo -e "${namarillo}Bienvenido al programa de gestión de objetos de OpenLDAP.${fincolor}"
 echo -e "${ciani}-----${fincolor}"
@@ -155,7 +157,8 @@ function crear {
 		echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
 		echo "ou: $nombre" >> /tmp/objetos/ou.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObject.log 2> /dev/null
+		date >> /tmp/objetos/errores.log
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Unidad organizativa creada."
@@ -174,6 +177,20 @@ function crear {
 
 	#Crear usuario
 	function crearUsuario {
+		#Crear unidad organizativa usuarios si no existe.
+		busquedaOU=`ldapsearch -xLLL -b $dominio ou=usuarios`
+		if [ -z "$busquedaOU" ]
+		then
+			echo "dn: ou=usuarios,$dominio" > /tmp/objetos/ou.ldif
+			echo "objectClass: top" >> /tmp/objetos/ou.ldif
+			echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
+			echo "ou: usuarios" >> /tmp/objetos/ou.ldif
+			date >> /tmp/objetos/crearObjetos.log
+			date >> /tmp/objetos/errores.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/logs/errores.log
+		fi
+		echo -e "${fnrojoi}¡IMPORTANTE!${fincolor}"
+		echo "La contraseña será igual que el nombre del usuario."
 		read -p "Nombre de usuario: " uid
 		read -p "Nombre: " nombrePila
 		read -p "Apellido/s: " apellidos
@@ -194,7 +211,8 @@ function crear {
 			intGid=$((intGid+1))
 			echo "gidNumber: $intGid" >> /tmp/objetos/gid.ldif
 			date >> /tmp/logs/crearObjetos.log
-			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
+			date >> /tmp/objetos/errores.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		else
 			#Añadir usuario al grupo ya existente.
 			echo "El grupo $nombreGrupo se ha encontrado. El usuario $uid pertenecerá a dicho grupo."
@@ -206,7 +224,7 @@ function crear {
 		intUid=${consultaUid/uidNumber: /}
 		intUid=$((intUid+1))
 		#Inserción de atributos del objeto al archivo que será ejecutado posteriormente.
-		echo "dn: uid=$uid,$dominio" > /tmp/objetos/uid.ldif
+		echo "dn: uid=$uid,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
 		echo "objectClass: inetOrgPerson" >> /tmp/objetos/uid.ldif
 		echo "objectClass: posixAccount" >> /tmp/objetos/uid.ldif
 		echo "objectClass: shadowAccount" >> /tmp/objetos/uid.ldif
@@ -217,24 +235,14 @@ function crear {
 		echo "displayName: $nombrePila $apellidos" >> /tmp/objetos/uid.ldif
 		echo "uidNumber: $intUid" >> /tmp/objetos/uid.ldif
 		echo "gidNumber: $intGid" >> /tmp/objetos/uid.ldif
-		#Bucle que preguntará por las contraseñas hasta que sean iguales.
-		while
-			read -s -p "Contraseña: " contraseniaUsuario
-			echo ""
-			read -s -p "Confirmar contraseña: " contraseniaUsuario2
-			echo ""
-			[ "$contraseniaUsuario" != "$contraseniaUsuario2" ]
-			do
-				echo "Las contraseñas no coinciden, inténtalo de nuevo."
-			done
-		#Continuar con la inserción de los datos al archivo LDIF.
-		echo "userPassword: $contraseniaUsuario" >> /tmp/objetos/uid.ldif
+		echo "userPassword: $uid" >> /tmp/objetos/uid.ldif
 		echo "loginShell: /bin/bash" >> /tmp/objetos/uid.ldif
-		echo "homeDirectory: /home/$uid" >> /tmp/objetos/uid.ldif
+		echo "homeDirectory: /profiles/$uid" >> /tmp/objetos/uid.ldif
 		echo "mail: $uid@$dominioDns" >> /tmp/objetos/uid.ldif
 		date >> /tmp/logs/crearObjetos.log
+		date >> /tmp/objetos/errores.log
 		#Ejecución del archivo LDIF.
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Usuario creado."
@@ -264,6 +272,7 @@ function crear {
 				echo "objectClass: top" >> /tmp/objetos/ou.ldif
 				echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
 				echo "ou: $nombre" >> /tmp/objetos/ou.ldif
+				ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/logs/errores.log
 			fi
 		done
 		#Recuperar GID del último grupo.
@@ -274,7 +283,8 @@ function crear {
 		echo "cn: $cn" >> /tmp/objetos/gid.ldif
 		echo "gidNumber: $intUltimoGid" >> /tmp/objetos/gid.ldif
 		date >> /tmp/logs/crearObjetos.log
-		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /dev/null
+		date >> /tmp/objetos/errores.log
+		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Grupo creado."
@@ -322,7 +332,7 @@ function eliminar {
 		echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
 		read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
 		if [ "$eliminarHijos" = "s" ]; then
-			ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
+			ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
 		else
 			echo "La unidad organizativa $nombre tiene hijos. Si quieres eliminarla deberás eliminar primero los hijos o moverlos a otra unidad organizativa."
 		fi
@@ -336,7 +346,7 @@ function eliminar {
 		do
 			echo "El término que has introducido no corresponde a ningún usuario de este dominio. Inténtalo de nuevo."
 		done
-		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
+		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
 	}
 	function eliminarGrupo {
 		while
@@ -360,7 +370,7 @@ function eliminar {
 			done;
 			read -p "¿Quieres eliminar a los usuarios pertenecientes al grupo? (s/n) " eliminarHijos
 			if [ "$eliminarHijos" = "s" ]; then
-				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /dev/null
+				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
 			else
 				echo "El grupo $nombre tiene hijos. Si quieres eliminarlo deberás eliminar primero los hijos o moverlos a otro grupo."
 				salir $codError
