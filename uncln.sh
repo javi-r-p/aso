@@ -96,9 +96,10 @@ account="account sufficient pam_ldap.so"
 #Actualización de los índices de repositorio, e instalación de los paquetes para OpenLDAP.
 clear
 echo -e "${ncian}Actualizando el índice de los repositorios.${fincolor}"
+apt clean > /dev/null 2> /dev/null
 apt update > /dev/null 2> /dev/null
 echo -e "${namarillo}Instalando librerías de OpenLDAP.${fincolor}"
-DEBIAN_FRONTEND=noninteractive apt install libnss-ldap libpam-ldap ldap-utils nslcd nfs-common rpcbind -y
+DEBIAN_FRONTEND=noninteractive apt install libnss-ldap libpam-ldap ldap-utils nslcd nfs-common rpcbind -y > /dev/null 2> /dev/null
 
 #Mensaje
 echo "Configuración en proceso."
