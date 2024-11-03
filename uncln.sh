@@ -36,7 +36,7 @@ fi
 
 #Mensaje de bienvenida y recogida de datos.
 clear
-echo "Unión de cliente Ubuntu a un dominio OpenLDAP"
+echo -e "${azuli}Unión de cliente Ubuntu a un dominio OpenLDAP${fincolor}"
 while
 	read -p "Dirección IP del servidor de OpenLDAP: " ip
 	[ -z "$ip" ]
