@@ -1,11 +1,11 @@
 #!/bin/bash
-#Script para unir clientes Ubuntu a un dominio de OpenLDAP.
+#Script para unir clientes Ubuntu a un dominio de OpenLDAP
 
 #Crear directorio para los perfiles (móviles)
 mkdir /profiles
 chmod 777 /profiles
 
-#Definición de colores.
+#Definición de colores
 fincolor='\e[0m'            #Eliminar color
 namarillo='\033[1;33m'      #Amarillo negrita
 ncian='\033[1;36m'          #Cián negrita
@@ -37,37 +37,53 @@ fi
 #Mensaje de bienvenida y recogida de datos.
 clear
 echo -e "${azuli}Unión de cliente Ubuntu a un dominio OpenLDAP${fincolor}"
+echo -e "${amarilloi}Este script permite el inicio de sesión tanto en modo texto como en modo gráfico.${fincolor}"
+echo -e "${rojoi}Los directorios personales de los usuarios están ubicados en el servidor. Son perfiles móviles.${fincolor}"
+
+#Dirección IP
 while
 	read -p "Dirección IP del servidor de OpenLDAP: " ip
 	[ -z "$ip" ]
 do
 	echo "La dirección IP del servidor es obligatoria."
 done
+
+#Ping a la IP especificada
 echo "Comprobando conectividad..."
 ping -c2 $ip > /dev/null 2> /dev/null
-if [ $? = 1 ]; then
+if [ $? = 0 ]; then
+	echo "Hay conectividad con el servidor
+elif [ $? = 1 ]; then
 	echo "No se ha podido contactar con el servidor. Revisa la configuración de red y asegúrate de que el servidor está conectado."
 	salir 1
 fi
+
+#Nombre de dominio
 while
 	read -p "Nombre del dominio: " dominioDns
 	[ -z "$dominioDns" ]
 do
 	echo "El nombre de dominio es obligatorio."
 done
+
+#Usuario administrador de OpenLDAP
 while
 	read -p "Usuario administrador del dominio: " adminLDAP
 	[ -z "$adminLDAP" ]
 do
 	echo "El nombre de usuario es obligatorio."
 done
+
+#Contraseña del administrador de OpenLDAP
 while
 	read -s -p "Contraseña del usuario administrador: " contrasenia
 	[ -z "$contrasenia" ]
 do
 	echo "La contraseña es obligatoria."
 done
-#echo $dominioDns >> /etc/hosts
+
+#Guardar el dominio en /etc/hosts (DNS local)
+echo $dominioDns >> /etc/hosts
 
 #Tratamiento de las variables de la IP del servidor, nombre de dominio y usuario administrador.
 uri="ldap://$ip"

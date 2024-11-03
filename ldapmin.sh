@@ -177,10 +177,11 @@ function crear {
 
 	#Crear usuario
 	function crearUsuario {
+
 		#Crear unidad organizativa usuarios si no existe.
+		echo "Todos los usuarios estarán ubicados en la unidad organizativa usuarios."
 		busquedaOU=`ldapsearch -xLLL -b $dominio ou=usuarios`
-		if [ -z "$busquedaOU" ]
-		then
+		if [ -z "$busquedaOU" ]; then
 			echo "dn: ou=usuarios,$dominio" > /tmp/objetos/ou.ldif
 			echo "objectClass: top" >> /tmp/objetos/ou.ldif
 			echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
@@ -197,10 +198,10 @@ function crear {
 		read -p "Grupo al que pertenece el usuario: " nombreGrupo
 		grupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nombreGrupo)(objectClass=posixGroup))"`
 		rutaObjeto=${grupo/dn: /}
+
 		#Si el grupo en el que se desea que esté el usuario no existiera o no se encontrara,
 		#se creará un nuevo grupo con el nombre que se especificó anteriormente.
-		if [ -z "$grupo" ]
-		then
+		if [ -z "$grupo" ]; then
 			#Crear nuevo grupo.
 			echo "Grupo no encontrado. Creando nuevo grupo con el nombre $nombreGrupo."
 			echo "dn: cn=$nombreGrupo,$dominio" > /tmp/objetos/gid.ldif
@@ -219,10 +220,16 @@ function crear {
 			consultaGid=`ldapsearch -xLLL -b $dominio "(&(cn=$nombreGrupo)(objectClass=posixGroup))" | grep "gidNumber"`
 			intGid=${consultaGid/gidNumber: /}
 		fi
-		#Recuperar UID con el valor más alto.
-		consultaUid=`ldapsearch -xLLL -b $dominio "objectClass=inetOrgPerson" | grep "uidNumber" | tail -n 1`
+
+		#Recuperar UID con el valor más alto. Si no hay ningún usuario creado, se empezará por el número 80000
+		consultaUid=`ldapsearch -xLLL -b $dominio "objectClass=posixAccount" | grep "uidNumber" | tail -n 1`
 		intUid=${consultaUid/uidNumber: /}
-		intUid=$((intUid+1))
+		if [ -z "$intUid" ]; then
+			intUid=80000
+		else
+			intUid=$((intUid+1))
+		fi
+
 		#Inserción de atributos del objeto al archivo que será ejecutado posteriormente.
 		echo "dn: uid=$uid,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
 		echo "objectClass: inetOrgPerson" >> /tmp/objetos/uid.ldif
@@ -241,49 +248,55 @@ function crear {
 		echo "mail: $uid@$dominioDns" >> /tmp/objetos/uid.ldif
 		date >> /tmp/logs/crearObjetos.log
 		date >> /tmp/objetos/errores.log
+
 		#Ejecución del archivo LDIF.
 		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		codError=$?
 		if [ "$codError" = "0" ]; then
 			echo "Usuario creado."
 			#Preguntar si se quiere ver la información del usuario.
-			read -p "¿Quieres ver la información del usuario $givenName? (s/n) " mostrar
-			if [ "$mostrar" = "s" ]; then
-				ldapsearch -xLLL -b $dominio uid=$uid
-			else
-				salir $codError
-			fi
+#			read -p "¿Quieres ver la información del usuario $givenName? (s/n) " mostrar
+#			if [ "$mostrar" = "s" ]; then
+#				ldapsearch -xLLL -b $dominio uid=$uid
+#			else
+#				salir $codError
+#			fi
 		else
 			controlErrores $codError
 			salir $codError
 		fi
 	}
 	function crearGrupo {
+
+		#Crear unidad organizativa grupos si no existe.
+		echo "Todos los grupos que crees mediante este script estarán ubicados en la unidad organizativa grupos."
+		busquedaOU=`ldapsearch -xLLL -b $dominio ou=grupos`
+		if [ -z "$busquedaOU" ]; then
+			echo "dn: ou=grupos,$dominio" > /tmp/objetos/ou.ldif
+			echo "objectClass: top" >> /tmp/objetos/ou.ldif
+			echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
+			echo "ou: grupos" >> /tmp/objetos/ou.ldif
+			date >> /tmp/objetos/crearObjetos.ldif
+			date >> /tmp/objetos/errores.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/logs/errores.log
+		fi
+
 		read -p "Nombre: " cn
-		while
-			read -p "Unidad organizativa a la que pertenece el grupo: " ou
-			consultaOU=`ldapsearch -xLLL -b $dominio ou=$ou`
-			[ -z "$ou" ] || [ -z "$consultaOU" ]
-		do
-			echo "La unidad organizativa que has especificado no existe."
-			read -p "¿Quieres crear una unidad organizativa con nombre $ou? (s/n) " crear
-			if [ "$crear" = "s" ]; then
-				echo "dn: ou=$nombre,$dominio" > /tmp/objetos/ou.ldif
-				echo "objectClass: top" >> /tmp/objetos/ou.ldif
-				echo "objectClass: organizationalUnit" >> /tmp/objetos/ou.ldif
-				echo "ou: $nombre" >> /tmp/objetos/ou.ldif
-				ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/ou.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/logs/errores.log
-			fi
-		done
+
 		#Recuperar GID del último grupo.
-		ultimoGid=`ldapsearch -xLLL -b $dominio objectClass=posixGroup | grep "gidNumber" | tail -n 1`
-		intUltimoGid=${ultimoGid/gidNumber: /}
-		echo "dn: cn=$cn,ou=$ou,$dominio" > /tmp/objetos/gid.ldif
+		consultaGid=`ldapsearch -xLLL -b $dominio objectClass=posixGroup | grep "gidNumber" | tail -n 1`
+		intGid=${consultaGid/gidNumber: /}
+		if [ -z "$intGid" ]; then
+			intGid=90000
+		else
+			intGid=$(($intGid+1))
+		fi
+		echo "dn: cn=$cn,ou=grupos,$dominio" > /tmp/objetos/gid.ldif
 		echo "objectClass: posixGroup" >> /tmp/objetos/gid.ldif
 		echo "cn: $cn" >> /tmp/objetos/gid.ldif
-		echo "gidNumber: $intUltimoGid" >> /tmp/objetos/gid.ldif
+		echo "gidNumber: $intGid" >> /tmp/objetos/gid.ldif
 		date >> /tmp/logs/crearObjetos.log
-		date >> /tmp/objetos/errores.log
+		date >> /tmp/logs/errores.log
 		ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log
 		codError=$?
 		if [ "$codError" = "0" ]; then
@@ -342,33 +355,47 @@ function eliminar {
 			read -p "Nombre del usuario que quieres eliminar: " nombre
 			dnObjeto=$(ldapsearch -xLLL -b $dominio uid=$nombre dn)
 			rutaObjeto=${dnObjeto/dn: /}
-			[ -z "$nombre" ] || [ -z "$rutaObjeto" ]
+			[ -z "$rutaObjeto" ]
 		do
 			echo "El término que has introducido no corresponde a ningún usuario de este dominio. Inténtalo de nuevo."
 		done
-		ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
+#		read -p "Confirma que deseas eliminar el usuario $nombre. (s/n) " eliminar
+#		if [ "$eliminar" = "s" ]; then
+			ldapdelete -x -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
+			if [ "$?" = "0" ]; then
+				echo "El usuario $nombre se ha eliminado."
+				salir 0
+			else
+				echo "Error"
+				salir 1
+			fi
+#		else
+#			salir 0
+#		fi
 	}
 	function eliminarGrupo {
 		while
 			read -p "Nombre del grupo que deseas eliminar: " nombre
 			dnObjeto=$(ldapsearch -xLLL -b $dominio cn=$nombre dn)
 			rutaObjeto=${dnObjeto/dn: /}
-			[ -z "$nombre" ] || [ -z "$rutaObjeto" ]
+			[ -z "$rutaObjeto" ]
 		do
 			echo "El término que has introducido no corresponde a ningún grupo del dominio. Inténtalo de nuevo."
 		done
-		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio (&(cn=$nombre)(objectClass=posixGroup)) gidNumber | grep "gidNumber"`
-		busquedaGidGrupo=${busqueda/gidNumber: /}
-		busquedaUsuarios=`ldapsearch -xLLL -b $dominio (&(gidNumber=$busquedaGidGrupo)(objectClass=posixAccount))`
+		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nombre)(objectClass=posixGroup))" | grep "gidNumber"`
+		busquedaGidGrupo=${busquedaGidGrupo/gidNumber: /}
+		busquedaUsuarios=`ldapsearch -xLLL -b $dominio "(&(gidNumber=$busquedaGidGrupo)(objectClass=posixAccount))"`
 		if [ -z "$busquedaUsuarios" ]; then
 			echo "Este grupo no tiene ningún objeto hijo."
 		else
 			echo "El grupo que has especificado tiene hijos. Son los siguientes:"
-			for objeto in $busquedaUsuarios; do
-				echo "$objeto"
+			IFS=$'\n'
+			for line in $busquedaUsuarios
+			do
+				echo $line
 				echo " ----- "
-			done;
-			read -p "¿Quieres eliminar a los usuarios pertenecientes al grupo? (s/n) " eliminarHijos
+			done
+			read -p "¿Quieres eliminar a los usuarios pertenecientes al grupo, y el propio grupo? (s/n) " eliminarHijos
 			if [ "$eliminarHijos" = "s" ]; then
 				ldapdelete -x -r -w $contrasenia -D "$adminLDAP" "$rutaObjeto" 2> /tmp/objetos/errores.log
 			else
@@ -403,7 +430,8 @@ function modificar {
 		while
 			read -p "Nombre de la unidad organizativa que quieres modificar: " nombre
 			rutaObjeto=$(ldapsearch -xLLL -b $dominio ou=$nombre dn)
-			[ -z "$nombre" ] || [ -z "$rutaObjeto" ]
+			rutaObjeto=${dnObjeto/dn: /}
+			[ -z "$rutaObjeto" ]
 		do
 			echo "El término que has introducido no corresponde a ninguna unidad organizativa del dominio. Inténtalo de nuevo"
 		done
