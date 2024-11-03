@@ -153,9 +153,10 @@ echo "$account" >> $commonaccount
 
 #Fin de configuración
 echo "Configuración finalizada."
-read -p "¿Quieres ejecutar el comando getent passwd? (s/n) " opcion
+echo "Debes reiniciar el sistema."
+read -p "¿Quieres hacerlo ahora? (s/n) " opcion
 if [ "$opcion" = "s" ]; then
-	getent passwd
+	reboot
 else
-	salir 0
+	exit 0
 fi
