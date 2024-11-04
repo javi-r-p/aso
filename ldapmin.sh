@@ -443,8 +443,7 @@ function modificarUsuario {
 	do
 		echo "El término que has introducido no corresponde a ningún usuario del dominio. Inténtalo de nuevo."
 	done
-	busquedaUsuario=`ldapsearch -xLLL -b $dominio "(&(uid=$nombre)(objectClass=posixAccount))"`
-	echo $busquedaUsuario
+	ldapsearch -xLLL -b $dominio "(&(uid=$nombre)(objectClass=posixAccount))"
 	echo -e "${azuli}--- --- --- --- ---${fincolor}"
 	echo "Puedes modificar los siguientes atributos:"
 	echo "1. Nombre de usuario."
