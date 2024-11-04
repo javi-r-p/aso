@@ -333,7 +333,7 @@ function eliminarUO {
 	else
 		echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
 		IFS=$'\n'
-		for objeto in $busquedaUsuarios
+		for objeto in $busquedaHijos
 		do
 			if [[ "$objeto" =~ ^dn ]]; then
 				echo -e "${azuli}--- --- --- --- ---${fincolor}"
