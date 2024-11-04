@@ -398,6 +398,7 @@ function eliminarGrupo {
 			salir $codError
 		fi
 	fi
+fi
 }
 
 #Modificar
