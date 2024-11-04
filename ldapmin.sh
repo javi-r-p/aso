@@ -445,61 +445,13 @@ function modificarUsuario {
 	done
 	echo -e "${azuli}--- --- --- --- ---${fincolor}"
 	echo "Puedes modificar los siguientes atributos:"
-	echo "1. Nombre de usuario."
-	echo "2. Nombre y apellidos."
-	echo "3. Contraseña."
-	echo "4. Grupo al que pertenece."
-	echo "5. Correo electrónico."
-	echo "6. Directorio personal del usuario."
+	echo "1. Contraseña."
+	echo "2. Grupo al que pertenece."
+	echo "3. Correo electrónico."
+	echo "4. Directorio personal del usuario."
 	read -p "¿Qué atributo quieres modificar? " atributo
 	case $atributo in
 	1)
-		echo "Modificar el nombre de usuario."
-		read -p "Nuevo nombre de usuario: " nuevoUid
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: uid" >> $uid
-		echo "uid: $nuevoUid" >> $uid
-		if [ "$?" = "0" ]; then
-			echo "Usuario modificado."
-			#Preguntar si se quiere ver la información del usuario.
-			read -p "¿Quieres ver la información del usuario $nuevoUid? (s/n) " mostrar
-			if [ "$mostrar" = "s" ]; then
-				ldapsearch -xLLL -b $dominio uid=$nuevoUid
-				salir 0
-			else
-				salir 0
-			fi
-		else
-			echo "Error"
-			salir 1
-		fi;;
-	2)
-		echo "Modificar el nombre (completo)."
-		read -p "Nombre y apellidos nuevos: " nuevoGivenName
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: givenName" >> $uid
-		echo "givenName: $nuevoGivenName" >> $uid
-		nuevoDisplayName="$nuevoGivenName"
-		echo "replace: displayName" >> $uid
-		echo "displayName: $displayName" >> $uid
-		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
-		if [ "$?" = "0" ]; then
-			echo "Usuario modificado."
-			#Preguntar si se quiere ver la información del usuario.
-			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
-			if [ "$mostrar" = "s" ]; then
-				ldapsearch -xLLL -b $dominio uid=$nombre
-				salir 0
-			else
-				salir 0
-			fi
-		else
-			echo "Error"
-			salir 1
-		fi;;
-	3)
 		echo "Modificar la contraseña."
 		while
 			read -s -p "Nueva contraseña: " nuevaContrasenia
@@ -527,7 +479,7 @@ function modificarUsuario {
 			echo "Error"
 			salir 1
 		fi;;
-	4)
+	2)
 		echo "Cambiar el grupo al que pertenece el usuario."
 		read -p "Nuevo grupo: " nuevoGrupo
 		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nuevoGrupo)(objectClass=posixGroup))" | grep gidNumber`
@@ -551,7 +503,7 @@ function modificarUsuario {
 			echo "Error"
 			salir 1
 		fi;;
-	5)
+	3)
 		echo "Modificar el correo electrónico."
 		read -p "Nuevo correo electrónico: " nuevoCorreo
 		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
@@ -573,7 +525,7 @@ function modificarUsuario {
 			echo "Error"
 			salir 1
 		fi;;
-	6)
+	4)
 		echo "Modificar el directorio personal del usuario."
 		read -p "Nuevo directorio personal: " nuevoDirectorio
 		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
