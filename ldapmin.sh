@@ -604,10 +604,8 @@ function modificarUsuario {
 	A)
 		echo "Modificar todos los atributos."
 		read -p "Nuevo nombre de usuario: " nuevoUid
-		read -p "Nuevo nombre: " nuevoGivenName
-		read -p "Nuevo apellido: " nuevoSn
-		nuevoDisplayName="$nuevoGivenName $nuevoSn"
-		cn="$nuevoDisplayName"
+		read -p "Nuevo nombre y apellidos: " nuevoCn
+		nuevoDisplayName="$nuevoCn"
 		while
 			read -p "Nueva contraseña: " nuevaContrasenia
 			read -p "Confirmar nueva contraseña: " nuevaContrasenia2
@@ -637,10 +635,6 @@ function modificarUsuario {
 		echo "changetype: modify" >> /tmp/objetos/uid.ldif
 		echo "replace: uid" >> /tmp/objetos/uid.ldif
 		echo "uid: $nuevoUid" >> /tmp/objetos/uid.ldif
-		echo "replace: givenName" >> /tmp/objetos/uid.ldif
-		echo "givenName: $nuevoGivenName" >> /tmp/objetos/uid.ldif
-		echo "replace: sn" >> /tmp/objetos/uid.ldif
-		echo "sn: $nuevoSn" >> /tmp/objetos/uid.ldif
 		echo "replace: cn" >> /tmp/objetos/uid.ldif
 		echo "cn: $cn" >> /tmp/objetos/uid.ldif
 		echo "replace: displayName" >> /tmp/objetos/uid.ldif
