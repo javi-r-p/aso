@@ -1,10 +1,6 @@
 #!/bin/bash
 #Script para unir clientes Ubuntu a un dominio de OpenLDAP
 
-#Crear directorio para los perfiles (móviles)
-mkdir /profiles
-chmod 777 /profiles
-
 #Definición de colores
 fincolor='\e[0m'            #Eliminar color
 namarillo='\033[1;33m'      #Amarillo negrita
@@ -34,6 +30,10 @@ if [ $EUID != 0 ]; then
 	salir 1
 fi
 
+#Crear directorio para los perfiles (móviles)
+mkdir /profiles
+chmod 777 /profiles
+
 #Mensaje de bienvenida y recogida de datos.
 clear
 echo -e "${azuli}Unión de cliente Ubuntu a un dominio OpenLDAP${fincolor}"
@@ -50,9 +50,9 @@ done
 
 #Ping a la IP especificada
 echo "Comprobando conectividad..."
-ping -c2 $ip > /dev/null 2> /dev/null
+ping -c3 $ip > /dev/null 2> /dev/null
 if [ $? = 0 ]; then
-	echo "Hay conectividad con el servidor
+	echo "Hay conectividad con el servidor"
 elif [ $? = 1 ]; then
 	echo "No se ha podido contactar con el servidor. Revisa la configuración de red y asegúrate de que el servidor está conectado."
 	salir 1
@@ -81,9 +81,6 @@ while
 do
 	echo "La contraseña es obligatoria."
 done
-
-#Guardar el dominio en /etc/hosts (DNS local)
-echo $dominioDns >> /etc/hosts
 
 #Tratamiento de las variables de la IP del servidor, nombre de dominio y usuario administrador.
 uri="ldap://$ip"

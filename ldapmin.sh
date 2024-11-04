@@ -148,7 +148,7 @@ echo -e "${fnrojoi}4: Salir.${fincolor}"
 read -p "Introduce un número (e.j.: 11 crea una unidad organizativa, 4 sale del programa.): " opcion
 
 #Funciones
-
+#Crear
 #Crear unidad organizativa
 function crearUO {
 	read -p "Nombre: " nombre
@@ -317,6 +317,7 @@ function crearGrupo {
 	fi
 }
 
+#Eliminar
 #Eliminar unidad organizativa
 function eliminarUO {
 	while
@@ -399,6 +400,7 @@ function eliminarGrupo {
 	fi
 }
 
+#Modificar
 #Modificar unidad organizativa
 function modificarUO {
 	while
@@ -414,6 +416,21 @@ function modificarUO {
 	echo "changetype: modrdn" >> /tmp/objetos/modificar.ldif
 	echo "newrdn: ou=$nuevoNombre" >> /tmp/objetos/modificar.ldif
 	echo "deleteoldrdn: 1" >> /tmp/objetos/modificar.ldif
+	ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/modificar.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+	if [ "$?" = "0" ]; then
+		echo "Unidad organizativa modificada."
+		#Preguntar si se quiere ver la información de la unidad organizativa.
+		read -p "¿Quieres ver la información de la unidad organizativa $nuevoNombre? (s/n) " mostrar
+		if [ "$mostrar" = "s" ]; then
+			ldapsearch -xLLL -b $dominio ou=$nuevoNombre
+			salir 0
+		else
+			salir 0
+		fi
+	else
+		echo "Error"
+		salir 1
+	fi
 }
 
 #Modificar usuario
@@ -421,38 +438,272 @@ function modificarUsuario {
 	while
 		read -p "Nombre del usuario que deseas modificar: " nombre
 		rutaObjeto=$(ldapsearch -xLLL -b $dominio uid=$nombre dn)
-		[ -z "$nombre" ] || [ -z "$rutaObjeto" ]
+		[ -z "$rutaObjeto" ]
 	do
 		echo "El término que has introducido no corresponde a ningún usuario del dominio. Inténtalo de nuevo."
 	done
-	busquedaUsuario=`ldapsearch -xLLL -b $dominio objectClass=inetOrgPerson`
+	busquedaUsuario=`ldapsearch -xLLL -b $dominio "(&(uid=$nombre)(objectClass=posixAccount))"`
+	echo $busquedaUsuario
+	echo -e "${azuli}--- --- --- --- ---${fincolor}"
 	echo "Puedes modificar los siguientes atributos:"
 	echo "1. Nombre de usuario."
-	echo "2. Nombre."
-	echo "3. Apellidos."
+	echo "2. Nombre y apellidos."
 	echo "4. Contraseña."
 	echo "5. Grupo al que pertenece."
+	echo "6. Correo electrónico."
+	echo "7. Directorio personal del usuario."
+	echo "A. Modificar todos los atributos."
 	read -p "¿Qué atributo quieres modificar?" atributo
 	case $atributo in
 	1)
-		echo "Has elegido modificar el nombre de usuario.";;
+		echo "Modificar el nombre de usuario."
+		read -p "Nuevo nombre de usuario: " nuevoUid
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: uid" >> /tmp/objetos/uid.ldif
+		echo "uid: $nuevoUid" >> /tmp/objetos/uid.ldif
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nuevoUid? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nuevoUid
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
 	2)
-		echo "Has elegido modificar el nombre.";;
+		echo "Modificar el nombre (completo)."
+		read -p "Nuevo nombre: " nuevoGivenName
+		read -p "Nuevo apellido: " nuevoSn
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: givenName" >> /tmp/objetos/uid.ldif
+		echo "givenName: $nuevoGivenName" >> /tmp/objetos/uid.ldif
+		echo "replace: sn" >> /tmp/objetos/uid.ldif
+		echo "sn: $nuevoSn" >> /tmp/objetos/uid.ldif
+		nuevoDisplayName="$nuevoGivenName $nuevoSn"
+		cn="$nuevoDisplayName"
+		echo "replace: displayName" >> /tmp/objetos/uid.ldif
+		echo "displayName: $displayName" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nombre
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
 	3)
-		echo "Has elegido modificar los apellidos.";;
+		echo "Has elegido modificar la contraseña."
+		while
+			read -p "Nueva contraseña: " nuevaContrasenia
+			read -p "Confirmar nueva contraseña: " nuevaContrasenia2
+			[ "$nuevaContrasenia" != "$nuevaContrasenia2" ]
+		do
+			echo "Las contraseñas no coinciden. Inténtalo de nuevo."
+		done
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: userPassword" >> /tmp/objetos/uid.ldif
+		echo "userPassword: $nuevaContrasenia" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nombre
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
 	4)
-		echo "Has elegido modificar la contraseña.";;
+		echo "Cambiar el grupo al que pertenece el usuario."
+		read -p "Nuevo grupo: " nuevoGrupo
+		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nuevoGrupo)(objectClass=posixGroup))" | grep gidNumber`
+		intGid=${busquedaGidGrupo/gidNumber: /}
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: gidNumber" >> /tmp/objetos/uid.ldif
+		echo "gidNumber: $intGid" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nombre
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
 	5)
-		echo "Has elegido cambiar el grupo al que pertenece el usuario.";;
+		echo "Modificar el correo electrónico."
+		read -p "Nuevo correo electrónico: " nuevoCorreo
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: mail" >> /tmp/objetos/uid.ldif
+		echo "mail: $nuevoCorreo" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nombre
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
+	6)
+		echo "Modificar el directorio personal del usuario."
+		read -p "Nuevo directorio personal: " nuevoDirectorio
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: homeDirectory" >> /tmp/objetos/uid.ldif
+		echo "homeDirectory: $nuevoDirectorio" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nombre? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nombre
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
+	A)
+		echo "Modificar todos los atributos."
+		read -p "Nuevo nombre de usuario: " nuevoUid
+		read -p "Nuevo nombre: " nuevoGivenName
+		read -p "Nuevo apellido: " nuevoSn
+		nuevoDisplayName="$nuevoGivenName $nuevoSn"
+		cn="$nuevoDisplayName"
+		while
+			read -p "Nueva contraseña: " nuevaContrasenia
+			read -p "Confirmar nueva contraseña: " nuevaContrasenia2
+			[ "$nuevaContrasenia" != "$nuevaContrasenia2" ]
+		do
+			echo "Las contraseñas no coinciden. Inténtalo de nuevo."
+		done
+		read -p "Nuevo grupo: " nuevoGrupo
+		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nuevoGrupo)(objectClass=posixGroup))" | grep gidNumber`
+		intGid=${busquedaGidGrupo/gidNumber: /}
+		if [ -z "$busquedaGidGrupo" ]; then
+			echo "El grupo que has especificado no existe. Creando nuevo grupo con el nombre $nuevoGrupo."
+			echo "dn: cn=$nuevoGrupo,$dominio" > /tmp/objetos/gid.ldif
+			echo "objectClass: posixGroup
+			cn: $nuevoGrupo" >> /tmp/objetos/gid.ldif
+			ultimoGid=`ldapsearch -xLLL -b $dominio "objectClass=posixGroup" | grep "gidNumber" | tail -n 1`
+			intGid=${ultimoGid/gidNumber: /}
+			intGid=$((intGid+1))
+			echo "gidNumber: $intGid" >> /tmp/objetos/gid.ldif
+			date >> /tmp/logs/crearObjetos.log
+			date >> /tmp/objetos/errores.log
+			ldapadd -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/gid.ldif >> /tmp/logs/crearObjetos.log 2> /tmp/objetos/errores.log			
+		fi
+		read -p "Nuevo correo electrónico: " nuevoCorreo
+		read -p "Nuevo directorio personal: " nuevoDirectorio
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > /tmp/objetos/uid.ldif
+		echo "changetype: modify" >> /tmp/objetos/uid.ldif
+		echo "replace: uid" >> /tmp/objetos/uid.ldif
+		echo "uid: $nuevoUid" >> /tmp/objetos/uid.ldif
+		echo "replace: givenName" >> /tmp/objetos/uid.ldif
+		echo "givenName: $nuevoGivenName" >> /tmp/objetos/uid.ldif
+		echo "replace: sn" >> /tmp/objetos/uid.ldif
+		echo "sn: $nuevoSn" >> /tmp/objetos/uid.ldif
+		echo "replace: cn" >> /tmp/objetos/uid.ldif
+		echo "cn: $cn" >> /tmp/objetos/uid.ldif
+		echo "replace: displayName" >> /tmp/objetos/uid.ldif
+		echo "displayName: $nuevoDisplayName" >> /tmp/objetos/uid.ldif
+		echo "replace: userPassword" >> /tmp/objetos/uid.ldif
+		echo "userPassword: $nuevaContrasenia" >> /tmp/objetos/uid.ldif
+		echo "replace: gidNumber" >> /tmp/objetos/uid.ldif
+		echo "gidNumber: $intGid" >> /tmp/objetos/uid.ldif
+		echo "replace: mail" >> /tmp/objetos/uid.ldif
+		echo "mail: $nuevoCorreo" >> /tmp/objetos/uid.ldif
+		echo "replace: homeDirectory" >> /tmp/objetos/uid.ldif
+		echo "homeDirectory: $nuevoDirectorio" >> /tmp/objetos/uid.ldif
+		ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/uid.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+		if [ "$?" = "0" ]; then
+			echo "Usuario modificado."
+			#Preguntar si se quiere ver la información del usuario.
+			read -p "¿Quieres ver la información del usuario $nuevoUid? (s/n) " mostrar
+			if [ "$mostrar" = "s" ]; then
+				ldapsearch -xLLL -b $dominio uid=$nuevoUid
+				salir 0
+			else
+				salir 0
+			fi
+		else
+			echo "Error"
+			salir 1
+		fi;;
 	*)
-		echo "No has seleccionado una opción válida.";;
+		echo "No has seleccionado una opción válida."
+		salir 1;;
 	esac
 }
 
 #Modificar grupo
-#	function modificarGrupo {
-
-#	}
+function modificarGrupo {
+	while
+		read -p "Nombre del grupo que deseas modificar: " nombre
+		rutaObjeto=$(ldapsearch -xLLL -b $dominio cn=$nombre dn)
+		[ -z "$rutaObjeto" ]
+	do
+		echo "El término que has introducido no corresponde a ningún grupo del dominio. Inténtalo de nuevo."
+	done
+	read -p "Nuevo nombre del grupo: " nuevoNombre
+	echo "$rutaObjeto" > /tmp/objetos/modificar.ldif
+	echo "changetype: modrdn" >> /tmp/objetos/modificar.ldif
+	echo "newrdn: cn=$nuevoNombre" >> /tmp/objetos/modificar.ldif
+	echo "deleteoldrdn: 1" >> /tmp/objetos/modificar.ldif
+	ldapmodify -x -D $adminLDAP -w $contrasenia -f /tmp/objetos/modificar.ldif >> /tmp/logs/modificarObjetos.log 2> /tmp/objetos/errores.log
+	if [ "$?" = "0" ]; then
+		echo "Grupo modificado."
+		#Preguntar si se quiere ver la información del grupo.
+		read -p "¿Quieres ver la información del grupo $nuevoNombre? (s/n) " mostrar
+		if [ "$mostrar" = "s" ]; then
+			ldapsearch -xLLL -b $dominio cn=$nuevoNombre
+			salir 0
+		else
+			salir 0
+		fi
+	else
+		echo "Error"
+		salir 1
+	fi
+}
 
 #Case para el menú de opciones
 case $opcion in
