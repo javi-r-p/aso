@@ -449,12 +449,12 @@ function modificarUsuario {
 	echo "Puedes modificar los siguientes atributos:"
 	echo "1. Nombre de usuario."
 	echo "2. Nombre y apellidos."
-	echo "4. Contraseña."
-	echo "5. Grupo al que pertenece."
-	echo "6. Correo electrónico."
-	echo "7. Directorio personal del usuario."
+	echo "3. Contraseña."
+	echo "4. Grupo al que pertenece."
+	echo "5. Correo electrónico."
+	echo "6. Directorio personal del usuario."
 	echo "A. Modificar todos los atributos."
-	read -p "¿Qué atributo quieres modificar?" atributo
+	read -p "¿Qué atributo quieres modificar? " atributo
 	case $atributo in
 	1)
 		echo "Modificar el nombre de usuario."
