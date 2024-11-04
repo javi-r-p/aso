@@ -1,5 +1,6 @@
 #!/bin/bash
 #Script desarrollado para facilitar la administración de objetos de OpenLDAP.
+clear
 
 #Comprobar que el usuario que está ejecutando el script sea root,
 #si no lo fuera, finalizar el programa.
@@ -19,8 +20,6 @@ uid="/tmp/uid.ldif"
 gid="/tmp/gid.ldif"
 objetos="/tmp/objetos.log"
 errores="/tmp/errores.log"
-
-clear
 
 #Comprobar que los paquetes slapd y ldaputils están instalados,
 #si no, mostrar un mensaje
