@@ -277,7 +277,7 @@ function crearGrupo {
 		echo "objectClass: top" >> $ou
 		echo "objectClass: organizationalUnit" >> $ou
 		echo "ou: grupos" >> $ou
-		date >> /tmp/objetos/crearObjetos.ldif
+		date >> $objetos
 		date >> $errores
 		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ou >> $objetos 2> $errores
 	fi
@@ -323,16 +323,29 @@ function eliminarUO {
 		read -p "Nombre de la unidad organizativa que quieres eliminar: " nombre
 		dnObjeto=$(ldapsearch -xLLL -b $dominio ou=$nombre dn)
 		rutaObjeto=${dnObjeto/dn: /}
-		[ -z "$nombre" ] || [ -z "$rutaObjeto" ]
+		[ -z "$rutaObjeto" ]
 	do
 		echo "El término que has introducido no corresponde a ninguna unidad organizativa de este dominio. Inténtalo de nuevo."
 	done
-	echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
-	read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
-	if [ "$eliminarHijos" = "s" ]; then
-		ldapdelete -x -r -w "$contrasenia" -D "$adminLDAP" "$rutaObjeto" 2> $errores
+	busquedaHijos=`ldapsearch -xLLL -b "ou=$nombre,$dominio" -s sub "(|(objectClass=posixAccount)(objectClass=posixGroup))"`
+	if [ -z "$busquedaHijos" ]; then
+		echo "Esta unidad organizativa no tiene hijos."
 	else
-		echo "La unidad organizativa $nombre tiene hijos. Si quieres eliminarla deberás eliminar primero los hijos o moverlos a otra unidad organizativa."
+		echo "Se han encontrado objetos hijos de la unidad organizativa $nombre. Son los siguientes:"
+		IFS=$'\n'
+		for objeto in $busquedaUsuarios
+		do
+			if [[ "$objeto" =~ ^dn ]]; then
+				echo -e "${azuli}--- --- --- --- ---${fincolor}"
+			fi
+			echo $objeto
+		done	
+		read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
+		if [ "$eliminarHijos" = "s" ]; then
+			ldapdelete -x -r -w "$contrasenia" -D "$adminLDAP" "$rutaObjeto" 2> $errores
+		else
+			echo "La unidad organizativa $nombre tiene hijos. Si quieres eliminarla deberás eliminar primero los hijos o moverlos a otra unidad organizativa."
+		fi
 	fi
 }
 
