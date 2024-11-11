@@ -15,9 +15,9 @@ touch /tmp/uid.ldif
 touch /tmp/gid.ldif
 touch /tmp/objetos.log
 touch /tmp/errores.log
-ou="/tmp/ou.ldif"
-uid="/tmp/uid.ldif"
-gid="/tmp/gid.ldif"
+ouLDIF="/tmp/ou.ldif"
+uidLDIF="/tmp/uid.ldif"
+gidLDIF="/tmp/gid.ldif"
 objetos="/tmp/objetos.log"
 errores="/tmp/errores.log"
 
@@ -151,13 +151,13 @@ read -p "Introduce un número (e.j.: 11 crea una unidad organizativa, 4 sale del
 #Crear unidad organizativa
 function crearUO {
 	read -p "Nombre: " nombre
-	echo "dn: ou=$nombre,$dominio" > $ou
-	echo "objectClass: top" >> $ou
-	echo "objectClass: organizationalUnit" >> $ou
-	echo "ou: $nombre" >> $ou
+	echo "dn: ou=$nombre,$dominio" > $ouLDIF
+	echo "objectClass: top" >> $ouLDIF
+	echo "objectClass: organizationalUnit" >> $ouLDIF
+	echo "ou: $nombre" >> $ouLDIF
 	date >> $crearObjetos
 	date >> $erorres
-	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ou >> $objetos 2> $errores
+	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ouLDIF >> $objetos 2> $errores
 	codError=$?
 	if [ "$codError" = "0" ]; then
 		echo "Unidad organizativa creada."
@@ -181,13 +181,13 @@ function crearUsuario {
 	echo "Todos los usuarios estarán ubicados en la unidad organizativa usuarios."
 	busquedaOU=`ldapsearch -xLLL -b $dominio ou=usuarios`
 	if [ -z "$busquedaOU" ]; then
-		echo "dn: ou=usuarios,$dominio" > $ou
-		echo "objectClass: top" >> $ou
-		echo "objectClass: organizationalUnit" >> $ou
-		echo "ou: usuarios" >> $ou
+		echo "dn: ou=usuarios,$dominio" > $ouLDIF
+		echo "objectClass: top" >> $ouLDIF
+		echo "objectClass: organizationalUnit" >> $ouLDIF
+		echo "ou: usuarios" >> $ouLDIF
 		date >> $objetos
 		date >> $errores
-		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ou >> $objetos 2> $errores
+		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ouLDIF >> $objetos 2> $errores
 	fi
 	echo -e "${fnrojoi}¡IMPORTANTE!${fincolor}"
 	echo "La contraseña será igual que el nombre del usuario."
@@ -203,16 +203,16 @@ function crearUsuario {
 	if [ -z "$grupo" ]; then
 		#Crear nuevo grupo.
 		echo "Grupo no encontrado. Creando nuevo grupo con el nombre $nombreGrupo."
-		echo "dn: cn=$nombreGrupo,$dominio" > $gid
-		echo "objectClass: posixGroup" >> $gid
-		echo "cn: $nombreGrupo" >> $gid
+		echo "dn: cn=$nombreGrupo,$dominio" > $gidLDIF
+		echo "objectClass: posixGroup" >> $gidLDIF
+		echo "cn: $nombreGrupo" >> $gidLDIF
 		ultimoGid=`ldapsearch -xLLL -b $dominio "objectClass=posixGroup" | grep "gidNumber" | tail -n 1`
 		intGid=${ultimoGid/gidNumber: /}
 		intGid=$((intGid+1))
-		echo "gidNumber: $intGid" >> $gid
+		echo "gidNumber: $intGid" >> $gidLDIF
 		date >> $objetos
 		date >> $errores
-		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $gid >> $objetos 2> $errores
+		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $gidLDIF >> $objetos 2> $errores
 	else
 		#Añadir usuario al grupo ya existente.
 		echo "El grupo $nombreGrupo se ha encontrado. El usuario $uid pertenecerá a dicho grupo."
@@ -230,26 +230,26 @@ function crearUsuario {
 	fi
 
 	#Inserción de atributos del objeto al archivo que será ejecutado posteriormente.
-	echo "dn: uid=$uid,ou=usuarios,$dominio" > $uid
-	echo "objectClass: inetOrgPerson" >> $uid
-	echo "objectClass: posixAccount" >> $uid
-	echo "objectClass: shadowAccount" >> $uid
-	echo "uid: $uid" >> $uid
-	echo "givenName: $nombrePila" >> $uid
-	echo "sn: $apellidos" >> $uid
-	echo "cn: $nombrePila $apellidos" >> $uid
-	echo "displayName: $nombrePila $apellidos" >> $uid
-	echo "uidNumber: $intUid" >> $uid
-	echo "gidNumber: $intGid" >> $uid
-	echo "userPassword: $uid" >> $uid
-	echo "loginShell: /bin/bash" >> $uid
-	echo "homeDirectory: /profiles/$uid" >> $uid
-	echo "mail: $uid@$dominioDns" >> $uid
+	echo "dn: uid=$uid,ou=usuarios,$dominio" > $uidLDIF
+	echo "objectClass: inetOrgPerson" >> $uidLDIF
+	echo "objectClass: posixAccount" >> $uidLDIF
+	echo "objectClass: shadowAccount" >> $uidLDIF
+	echo "uid: $uid" >> $uidLDIF
+	echo "givenName: $nombrePila" >> $uidLDIF
+	echo "sn: $apellidos" >> $uidLDIF
+	echo "cn: $nombrePila $apellidos" >> $uidLDIF
+	echo "displayName: $nombrePila $apellidos" >> $uidLDIF
+	echo "uidNumber: $intUid" >> $uidLDIF
+	echo "gidNumber: $intGid" >> $uidLDIF
+	echo "userPassword: $uid" >> $uidLDIF
+	echo "loginShell: /bin/bash" >> $uidLDIF
+	echo "homeDirectory: /profiles/$uid" >> $uidLDIF
+	echo "mail: $uid@$dominioDns" >> $uidLDIF
 	date >> $objetos
 	date >> $errores
 
 	#Ejecución del archivo LDIF.
-	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
+	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $uidLDIF >> $objetos 2> $errores
 	codError=$?
 	if [ "$codError" = "0" ]; then
 		echo "Usuario creado."
@@ -273,13 +273,13 @@ function crearGrupo {
 	echo "Todos los grupos que crees mediante este script estarán ubicados en la unidad organizativa grupos."
 	busquedaOU=`ldapsearch -xLLL -b $dominio ou=grupos`
 	if [ -z "$busquedaOU" ]; then
-		echo "dn: ou=grupos,$dominio" > $ou
-		echo "objectClass: top" >> $ou
-		echo "objectClass: organizationalUnit" >> $ou
-		echo "ou: grupos" >> $ou
+		echo "dn: ou=grupos,$dominio" > $ouLDIF
+		echo "objectClass: top" >> $ouLDIF
+		echo "objectClass: organizationalUnit" >> $ouLDIF
+		echo "ou: grupos" >> $ouLDIF
 		date >> $objetos
 		date >> $errores
-		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ou >> $objetos 2> $errores
+		ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ouLDIF >> $objetos 2> $errores
 	fi
 
 	read -p "Nombre: " cn
@@ -292,13 +292,13 @@ function crearGrupo {
 	else
 		intGid=$(($intGid+1))
 	fi
-	echo "dn: cn=$cn,ou=grupos,$dominio" > $gid
-	echo "objectClass: posixGroup" >> $gid
-	echo "cn: $cn" >> $gid
-	echo "gidNumber: $intGid" >> $gid
+	echo "dn: cn=$cn,ou=grupos,$dominio" > $gidLDIF
+	echo "objectClass: posixGroup" >> $gidLDIF
+	echo "cn: $cn" >> $gidLDIF
+	echo "gidNumber: $intGid" >> $gidLDIF
 	date >> $objetos
 	date >> $errores
-	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $gid >> $objetos 2> $errores
+	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $gidLDIF >> $objetos 2> $errores
 	codError=$?
 	if [ "$codError" = "0" ]; then
 		echo "Grupo creado."
@@ -425,11 +425,11 @@ function modificarUO {
 		echo "El término que has introducido no corresponde a ninguna unidad organizativa del dominio. Inténtalo de nuevo"
 	done
 	read -p "Nuevo nombre de la unidad organizativa: " nuevoNombre
-	echo "$rutaObjeto" > $ou
-	echo "changetype: modrdn" >> $ou
-	echo "newrdn: ou=$nuevoNombre" >> $ou
-	echo "deleteoldrdn: 1" >> $ou
-	ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $ou >> $objetos 2> $errores
+	echo "$rutaObjeto" > $ouLDIF
+	echo "changetype: modrdn" >> $ouLDIF
+	echo "newrdn: ou=$nuevoNombre" >> $ouLDIF
+	echo "deleteoldrdn: 1" >> $ouLDIF
+	ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $ouLDIF >> $objetos 2> $errores
 	if [ "$?" = "0" ]; then
 		echo "Unidad organizativa modificada."
 		#Preguntar si se quiere ver la información de la unidad organizativa.
@@ -472,11 +472,11 @@ function modificarUsuario {
 		do
 			echo "Las contraseñas no coinciden. Inténtalo de nuevo."
 		done
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: userPassword" >> $uid
-		echo "userPassword: $nuevaContrasenia" >> $uid
-		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uidLDIF
+		echo "changetype: modify" >> $uidLDIF
+		echo "replace: userPassword" >> $uidLDIF
+		echo "userPassword: $nuevaContrasenia" >> $uidLDIF
+		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uidLDIF >> $objetos 2> $errores
 		if [ "$?" = "0" ]; then
 			echo "Usuario modificado."
 			#Preguntar si se quiere ver la información del usuario.
@@ -496,11 +496,11 @@ function modificarUsuario {
 		read -p "Nuevo grupo: " nuevoGrupo
 		busquedaGidGrupo=`ldapsearch -xLLL -b $dominio "(&(cn=$nuevoGrupo)(objectClass=posixGroup))" | grep gidNumber`
 		intGid=${busquedaGidGrupo/gidNumber: /}
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: gidNumber" >> $uid
-		echo "gidNumber: $intGid" >> $uid
-		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uidLDIF
+		echo "changetype: modify" >> $uidLDIF
+		echo "replace: gidNumber" >> $uidLDIF
+		echo "gidNumber: $intGid" >> $uidLDIF
+		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uidLDIF >> $objetos 2> $errores
 		if [ "$?" = "0" ]; then
 			echo "Usuario modificado."
 			#Preguntar si se quiere ver la información del usuario.
@@ -518,11 +518,11 @@ function modificarUsuario {
 	3)
 		echo "Modificar el correo electrónico."
 		read -p "Nuevo correo electrónico: " nuevoCorreo
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: mail" >> $uid
-		echo "mail: $nuevoCorreo" >> $uid
-		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uidLDIF
+		echo "changetype: modify" >> $uidLDIF
+		echo "replace: mail" >> $uidLDIF
+		echo "mail: $nuevoCorreo" >> $uidLDIF
+		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uidLDIF >> $objetos 2> $errores
 		if [ "$?" = "0" ]; then
 			echo "Usuario modificado."
 			#Preguntar si se quiere ver la información del usuario.
@@ -540,11 +540,11 @@ function modificarUsuario {
 	4)
 		echo "Modificar el directorio personal del usuario."
 		read -p "Nuevo directorio personal: " nuevoDirectorio
-		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uid
-		echo "changetype: modify" >> $uid
-		echo "replace: homeDirectory" >> $uid
-		echo "homeDirectory: $nuevoDirectorio" >> $uid
-		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uid >> $objetos 2> $errores
+		echo "dn: uid=$nombre,ou=usuarios,$dominio" > $uidLDIF
+		echo "changetype: modify" >> $uidLDIF
+		echo "replace: homeDirectory" >> $uidLDIF
+		echo "homeDirectory: $nuevoDirectorio" >> $uidLDIF
+		ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $uidLDIF >> $objetos 2> $errores
 		if [ "$?" = "0" ]; then
 			echo "Usuario modificado."
 			#Preguntar si se quiere ver la información del usuario.
@@ -575,11 +575,11 @@ function modificarGrupo {
 		echo "El término que has introducido no corresponde a ningún grupo del dominio. Inténtalo de nuevo."
 	done
 	read -p "Nuevo nombre del grupo: " nuevoNombre
-	echo "$rutaObjeto" > $gid
-	echo "changetype: modrdn" >> $gid
-	echo "newrdn: cn=$nuevoNombre" >> $gid
-	echo "deleteoldrdn: 1" >> $gid
-	ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $gid >> $objetos 2> $errores
+	echo "$rutaObjeto" > $gidLDIF
+	echo "changetype: modrdn" >> $gidLDIF
+	echo "newrdn: cn=$nuevoNombre" >> $gidLDIF
+	echo "deleteoldrdn: 1" >> $gidLDIF
+	ldapmodify -x -D "$adminLDAP" -w "$contrasenia" -f $gidLDIF >> $objetos 2> $errores
 	if [ "$?" = "0" ]; then
 		echo "Grupo modificado."
 		#Preguntar si se quiere ver la información del grupo.
