@@ -339,7 +339,7 @@ function eliminarUO {
 				echo -e "${azuli}--- --- --- --- ---${fincolor}"
 			fi
 			echo $objeto
-		done	
+		done
 		read -p "¿Quieres eliminar a los hijos de la unidad organizativa $nombre? (s/n) " eliminarHijos
 		if [ "$eliminarHijos" = "s" ]; then
 			ldapdelete -x -r -w "$contrasenia" -D "$adminLDAP" "$rutaObjeto" 2> $errores
