@@ -36,15 +36,15 @@ systemctl daemon-reload >> $log
 systemctl enable >> $log
 chown root:root $log
 chmod 644 $log
-systemctl start logd.service
-systemctl status logd.service
+systemctl start logd.service >> $log
+systemctl status logd.service >> $log
 while
 	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
 	[ -z "$opcion" ]
 do
 	echo "Selecciona una opción."
 done
-if [ "$opcion" = "s" || "$opcion" = "S" ]; then
+if [[ "$opcion" == "s" || "$opcion" == "S" ]]; then
 	clear
 	cat $log
 	exit 0
