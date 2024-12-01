@@ -61,8 +61,8 @@ echo "Para ello, es importante que cuentes con una cuenta de correo electrónico
 echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página:"
 echo "https://myaccount.google.com/apppasswords"
 echo "---"
-#read -p "Introduce una dirección de correo: " email
-#read -p "Introduce la clave de aplicación: " contrasenia
+read -p "Introduce una dirección de correo: " email
+read -p "Introduce la clave de aplicación: " contrasenia
 
 echo "Configurando msmtp"
 touch /etc/msmtprc
@@ -80,9 +80,9 @@ tls_trust_file /etc/ssl/certs/ca-certificates.crt
 account default
 host smtp.gmail.com
 port 587
-from javi.rodriguez.4.p@gmail.com
-user javi.rodriguez.4.p@gmail.com
-password joul jomt azfd kcmh
+from $email
+user $email
+password $contrasenia
 EOF
 
 #Almacenar dirección de correo en un archivo
