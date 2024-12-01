@@ -11,6 +11,10 @@ if [[ $? -eq 1 ]]; then
 	exit 1
 fi
 
+#Directorio de configuración de logd
+mkdir /etc/logd
+chmod 755 /etc/logd
+
 echo "Instalación del servicio logd"
 bin="/usr/bin"
 cp ./logd.sh $bin/logd.sh
@@ -39,11 +43,14 @@ systemctl daemon-reload >> $log
 systemctl enable logd.service >> $log
 
 echo "Instalando logcheck"
-apt update > $log 2>> $log
+apt update >> $log 2>> $log
 apt install logcheck -y >> $log 2>> $log
 
 echo "Instalando logger"
 apt install logger -y >> $log 2>> $log
+
+echo "Instalando sysstat"
+apt install sysstat -y >> $log 2>> $log
 
 echo "Instalando certificados"
 apt install ca-certificates -y >> $log 2>> $log
@@ -90,12 +97,21 @@ user $email
 password $contrasenia
 EOF
 
+#Almacenar dirección de correo en un archivo
+echo $email > /etc/logd/correo
+
 echo -e "To: $email\nSubject: Correo de prueba." | msmtp -t >> $log 2>> $log
 if [[ $? -eq 0 ]]; then
 	echo "Correo enviado."
 else
 	echo "Ha habido un error al enviar el correo de prueba."
+	exit 1
 fi
+
+read -p "Introduce los nombres de los servicios que quieres monitorizar separados por espacios: " servicios
+echo $servicios > /tmp/servicios
+tr ' ' '\n' < "/tmp/servicios" > /etc/logd/servicios.conf
+rm /tmp/servicios
 
 systemctl start logd.service >> $log
 systemctl status logd.service >> $log
