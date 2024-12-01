@@ -104,19 +104,19 @@ function comprobarServicios {
 }
 
 #Bucles
-#(
-#    while true
-#    do
-#        uptime -p >> $log
-#        sleep 43200
-#    done
-#) &
+(
+    while true
+    do
+        uptime -p >> $log
+        sleep 10800
+    done
+) &
 (
     while true
     do
         usoDiscos
         comprobarServicios
-        sleep 10
+        sleep 30
     done
 ) &
 (
@@ -124,7 +124,7 @@ function comprobarServicios {
     do
         usoRAM
         usoProc
-        sleep 10
+        sleep 30
     done
 )
 
