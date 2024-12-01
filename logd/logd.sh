@@ -50,7 +50,7 @@ function usoRAM {
     echo "---" >> $log
     ps aux --sort=-%mem | head -n 6 >> $log
 
-    if [[ $usoRAM -gt 85 ]]; then
+    if [[ $usoRAM -gt 2 ]]; then
         enviarCorreo "Uso de memoria RAM" "El uso de la RAM está por encima del 85%, los 5 procesos con más consumo son: $procesos"
     fi
 }
