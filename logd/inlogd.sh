@@ -38,6 +38,13 @@ chown root:root $log
 chmod 644 $log
 systemctl start logd.service >> $log
 systemctl status logd.service >> $log
+echo "Instalando logcheck"
+apt update > /dev/null 2> /dev/null
+apt install logcheck -y > /dev/null 2> /dev/null
+echo "Instalando msmtp"
+apt install msmtp -y > /dev/null 2> /dev/null
+echo "Instalando logger"
+apt install logger -y > /dev/null 2> /dev/null
 while
 	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
 	[ -z "$opcion" ]
