@@ -61,7 +61,6 @@ function usoProc {
 
     echo "-----" >> $log
     echo "Uso del procesador: $usoProc%" >> $log
-    grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}' >> $log
     echo "---" >> $log
     ps aux --sort=-%cpu | head -n 6 >> $log
 
