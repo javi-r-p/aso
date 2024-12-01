@@ -11,8 +11,9 @@ trap 'rm -f $lock; exit' EXIT SIGINT SIGTERM
 #Fecha y hora
 tiempo=`date +"%d-%m-%Y.%H:%M:%S"`
 
-#Recoger dirección de correo electrónico
+#Recoger dirección de correo electrónico y servicios registrados
 correo=`cat /etc/logd/correo`
+servicios=`cat /etc/logd/servicios.conf`
 
 #Comprobar si el archivo log existe
 if [ -e "/var/log/logd.log" ]; then
@@ -70,10 +71,37 @@ function usoProc {
     fi
 }
 
-#Comprobar servicios
-#function comprobarServicios {
+#Uso de los discos
+function usoDiscos {
+    echo "-----" >> $log
+    df -h | grep -E '^/dev/' | awk '{print $1, $5}' | while read disco; do
+        volumen=$(echo $disco | awk '{print $1}')
+        uso=$(echo $disco | awk '{print $2}' | sed 's/%//')
 
-#}
+        echo "Disco: $volumen; uso: $uso%"
+        echo "---"
+
+        if [[ $uso -gt 80 ]]; then
+            enviarCorreo "El almacenamiento se está agotando" "El disco $volumen tiene un uso del $uso%."
+            categorias 1 "ALERT: Disk usage over 80%"
+        fi
+    done
+}
+
+#Comprobar servicios
+function comprobarServicios {
+    echo "-----" >> $log
+    for servicio in $servicios; do
+        if systemctl is-active --quiet $servicio; then
+            echo "Servicio $servicio en funcionamiento." >> $log
+            echo "---" >> $log
+        else
+            echo "El servicio $servicio está detenido." >> $log
+            enviarCorreo "Servicio $servicio" "El servicio $servicio está detenido."
+            categorias 2 "CRITICAL: Service $servicio is not working"
+        fi
+    done
+}
 
 #Bucles
 #(
@@ -82,22 +110,21 @@ function usoProc {
 #        uptime -p >> $log
 #        sleep 43200
 #    done
-#)
-#&
-#(
-#    while true
-#    do
-#        comprobarServicios
-#        sleep 900
-#    done
-#)
-#&
+#) &
+(
+    while true
+    do
+        usoDiscos
+        comprobarServicios
+        sleep 10
+    done
+) &
 (
     while true
     do
         usoRAM
         usoProc
-        sleep 300
+        sleep 10
     done
 )
 
