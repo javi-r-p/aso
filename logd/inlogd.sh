@@ -15,14 +15,14 @@ echo "Instalación del servicio logd"
 bin="/usr/bin"
 cp ./logd.sh $bin/logd.sh
 chmod +x logd.sh
-log="/var/tmp/archivoRespuesta.txt"
+log="/tmp/archivoRespuesta.txt"
 touch $log
 echo "Archivo de respuesta de la instalación de logd" >> $log
 date +"%d.%m.%Y-%H.%M.%S.%2N" >> $log
 archivoServicio="/etc/systemd/system/logd.service"
 touch $archivoServicio
 
-cat <<EOF | tee $archivoServicio > /dev/null
+cat << EOF | tee $archivoServicio > /dev/null
 [Unit]
 Description=Servicio de log del sistema
 After=network.target
@@ -36,21 +36,22 @@ User=root
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload >> $log
-systemctl enable >> $log
+systemctl enable logd.service >> $log
 
 echo "Instalando logcheck"
 apt update > $log 2>> $log
 apt install logcheck -y >> $log 2>> $log
 
-echo "Instalando msmtp"
-apt install msmtp -y >> $log 2>> $log
-
 echo "Instalando logger"
 apt install logger -y >> $log 2>> $log
 
 echo "Instalando certificados"
-apt install ca-certificates >> $log 2>> $log
+apt install ca-certificates -y >> $log 2>> $log
 
+sleep 1
+read -p "Se van a configurar las alertas por correo electrónico."
+read -p "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
+read -p "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página: https://myaccount.google.com/apppasswords"
 while
 	read -p "Introduce una dirección de correo: " email
 	[ -z $email ]
@@ -58,9 +59,10 @@ do
 	echo "No has introducido ninguna dirección de correo."
 done
 while
-	read -s -p "Introduce la contraseña de la cuenta de correo electrónico: " contrasenia
+	read -s -p "Introduce la clave de aplicación: " contrasenia
 	echo ""
-	read -s -p "Confirma la contraseña: " contrasenia2
+	read -s -p "Confirma la clave: " contrasenia2
+	echo ""
 	[ "$contrasenia" != "$contrasenia2" ]
 do
 	echo "Las contraseñas no coinciden. Inténtalo de nuevo."
@@ -88,11 +90,7 @@ user $email
 password $contrasenia
 EOF
 
-touch /var/log/msmtp.log
-chmod 600 /var/log/msmtp.log
-chown root:root /var/log/msmtp.log
-
-echo -e "To: $email\nSubject: Correo de prueba." | msmtp -t
+echo -e "To: $email\nSubject: Correo de prueba." | msmtp -t >> $log 2>> $log
 if [[ $? -eq 0 ]]; then
 	echo "Correo enviado."
 else

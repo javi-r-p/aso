@@ -16,9 +16,9 @@ done
 if [ "$opcion" = "s" ]; then
 	#Desinstalación
 	systemctl stop logd.service > /dev/null 2> /dev/null
-	rm /etc/systemd/system/logd.service /usr/bin/logd.sh
-	apt remove --purge msmtp logcheck logger -y
-	apt autoremove -y
+	rm /etc/systemd/system/logd.service /usr/bin/logd.sh > /dev/null 2> /dev/null
+	apt remove --purge msmtp logcheck logger -y > /dev/null 2> /dev/null
+	apt autoremove -y > /dev/null 2> /dev/null
 	echo "El servicio logd se ha desinstalado. ¡Hasta pronto!"
 	exit 0
 else
