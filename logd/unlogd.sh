@@ -17,7 +17,7 @@ done
 if [ "$opcion" = "s" ]; then
 	#Desinstalación
 	systemctl stop logd.service > /dev/null 2> /dev/null
-	rm -r /etc/systemd/system/logd.service /usr/bin/logd.sh /etc/logd /etc/msmtprc /var/log/logd > /dev/null 2> /dev/null
+	rm -r /etc/systemd/system/logd.service /usr/bin/logd.sh /etc/logd /etc/msmtprc /var/log/logd.log > /dev/null 2> /dev/null
 	apt remove --purge msmtp logcheck logger -y > /dev/null 2> /dev/null
 	apt autoremove -y > /dev/null 2> /dev/null
 	systemctl daemon-reload > /dev/null 2> /dev/null
