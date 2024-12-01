@@ -88,7 +88,7 @@ EOF
 #Almacenar dirección de correo en un archivo
 echo $email > /etc/logd/correo
 
-echo -e "To: $email\nSubject: Correo de prueba." | msmtp -t >> $log 2>> $log
+echo -e "To: $email\nSubject: Correo de prueba.\n\nCorreo de prueba, instalando el servicio logd" | msmtp -t >> $log 2>> $log
 if [[ $? -eq 0 ]]; then
 	echo "Correo enviado."
 else
@@ -108,6 +108,9 @@ echo "Servicio instalado."
 echo "Si quieres modificar los servicios que quieres monitorizar, modifica el siguiente archivo:"
 echo "/etc/logd/servicios.conf" 
 echo "Cada servicio que introduzcas debe estar en una línea diferente."
+echo "-----"
+echo "Creando entrada en crontab"
+echo "*/5 * * * * root /bin/bash /usr/bin/logd.sh" | tee -a /etc/crontab > /dev/null 2> /dev/null
 while
 	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
 	[ -z "$opcion" ]
