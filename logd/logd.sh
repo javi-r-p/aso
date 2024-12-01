@@ -116,7 +116,7 @@ function comprobarServicios {
     do
         usoDiscos
         comprobarServicios
-        sleep 30
+        sleep 900
     done
 ) &
 (
@@ -124,7 +124,7 @@ function comprobarServicios {
     do
         usoRAM
         usoProc
-        sleep 30
+        sleep 300
     done
 )
 
