@@ -43,11 +43,12 @@ function usoRAM {
     infoMemoria=`free -m | grep "Mem:" | awk '{print $2, $3, $4}'`
     read memoriaTotal memoriaUsada memoriaLibre <<< $infoMemoria
     usoRAM=$((100 * memoriaUsada / memoriaTotal))
-    procesosRAM=`ps aux --sort=-%mem | head -n 6`
 
+    echo "-----"
+    echo "Uso de la memoria RAM"
     echo $usoRAM >> $log
     echo "---" >> $log
-    echo $procesosRAM >> $log
+    ps aux --sort=-%mem | head -n 6 >> $log
 
     if [[ $usoRAM -gt 85 ]]; then
         enviarCorreo "Uso de memoria RAM" "El uso de la RAM está por encima del 85%, los 5 procesos con más consumo son: $procesos"
@@ -56,12 +57,13 @@ function usoRAM {
 
 #Uso del procesador
 function usoProc {
-    usoProc=`grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'`
-    procesosProc=`ps aux --sort=-%cpu | head -n 6`
+    usoProc=`grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'`
 
+    echo "-----"
+    echo "Uso del procesador"
     echo $usoProc >> $log
     echo "---" >> $log
-    echo $procesosProc >> $log
+    ps aux --sort=-%cpu | head -n 6 >> $log
     if [[ $usoProc -gt 90 ]]; then
         enviarCorreo "Uso de procesador" "El uso del procesador está por encima del 90%, los 5 procesos con más consumo son: $procesos"
     fi
