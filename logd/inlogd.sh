@@ -87,7 +87,6 @@ tls on
 tls_starttls on
 tls_certcheck off
 tls_trust_file /etc/ssl/certs/ca-certificates.crt
-logfile /var/log/msmtp.log
 
 account default
 host smtp.gmail.com
