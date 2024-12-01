@@ -55,12 +55,14 @@ apt install sysstat -y >> $log 2>> $log
 echo "Instalando certificados"
 apt install ca-certificates -y >> $log 2>> $log
 
-sleep 1
+echo "-----"
 echo "Se van a configurar las alertas por correo electrónico."
 echo "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
-echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página: https://myaccount.google.com/apppasswords"
-read -p "Introduce una dirección de correo: " email
-read -p "Introduce la clave de aplicación: " contrasenia
+echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página:"
+echo "https://myaccount.google.com/apppasswords"
+echo "---"
+#read -p "Introduce una dirección de correo: " email
+#read -p "Introduce la clave de aplicación: " contrasenia
 
 echo "Configurando msmtp"
 touch /etc/msmtprc
@@ -78,9 +80,9 @@ tls_trust_file /etc/ssl/certs/ca-certificates.crt
 account default
 host smtp.gmail.com
 port 587
-from $email
-user $email
-password $contrasenia
+from javi.rodriguez.4.p@gmail.com
+user javi.rodriguez.4.p@gmail.com
+password joul jomt azfd kcmh
 EOF
 
 #Almacenar dirección de correo en un archivo
@@ -102,6 +104,10 @@ rm /tmp/servicios
 systemctl start logd.service >> $log
 systemctl status logd.service >> $log
 
+echo "Servicio instalado."
+echo "Si quieres modificar los servicios que quieres monitorizar, modifica el siguiente archivo:"
+echo "/etc/logd/servicios.conf" 
+echo "Cada servicio que introduzcas debe estar en una línea diferente."
 while
 	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
 	[ -z "$opcion" ]
