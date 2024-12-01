@@ -39,7 +39,6 @@ User=root
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload >> $log
 systemctl enable logd.service >> $log
 
 echo "Instalando logcheck"
@@ -111,6 +110,9 @@ echo "Cada servicio que introduzcas debe estar en una línea diferente."
 echo "-----"
 echo "Creando entrada en crontab"
 echo "*/5 * * * * root /bin/bash /usr/bin/logd.sh" | tee -a /etc/crontab > /dev/null 2> /dev/null
+
+systemctl daemon-reload >> $log
+
 while
 	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
 	[ -z "$opcion" ]
