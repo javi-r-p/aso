@@ -59,18 +59,8 @@ sleep 1
 echo "Se van a configurar las alertas por correo electrónico."
 echo "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
 echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página: https://myaccount.google.com/apppasswords"
-while
-	read -p "Introduce una dirección de correo: " email
-	[ -z $email ]
-do
-	echo "No has introducido ninguna dirección de correo."
-done
-while
-	read -p "Introduce la clave de aplicación: " contrasenia
-	[ -z $contrasenia ]
-do
-	echo "No has introducido ninguna contraseña."
-done
+read -p "Introduce una dirección de correo: " email
+read -p "Introduce la clave de aplicación: " contrasenia
 
 echo "Configurando msmtp"
 touch /etc/msmtprc
