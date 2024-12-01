@@ -66,13 +66,10 @@ do
 	echo "No has introducido ninguna dirección de correo."
 done
 while
-	read -s -p "Introduce la clave de aplicación: " contrasenia
-	echo ""
-	read -s -p "Confirma la clave: " contrasenia2
-	echo ""
-	[ "$contrasenia" != "$contrasenia2" ]
+	read -p "Introduce la clave de aplicación: " contrasenia
+	[ -z $contrasenia ]
 do
-	echo "Las contraseñas no coinciden. Inténtalo de nuevo."
+	echo "No has introducido ninguna contraseña."
 done
 
 echo "Configurando msmtp"
