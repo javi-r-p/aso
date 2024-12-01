@@ -6,6 +6,7 @@ if [ -e $lock ]; then
     exit 0
 fi
 touch $lock
+trap 'rm -f $lock; exit' EXIT SIGINT SIGTERM
 
 #Fecha y hora
 tiempo=`date +"%d-%m-%Y.%H:%M:%S"`
