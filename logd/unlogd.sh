@@ -4,8 +4,10 @@ if [ $EUID -ne 0 ]; then
 	echo "El script debe ser ejecutado como root"
 	exit 1
 fi
+
 #Mensaje de bienvenida
 echo "Desinstalación del servicio logd"
+
 #Confirmación de desinstalación
 while
 	echo "Los logs creados hasta ahora con este servicio también serán eliminados"
