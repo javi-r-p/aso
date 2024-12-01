@@ -56,9 +56,9 @@ echo "Instalando certificados"
 apt install ca-certificates -y >> $log 2>> $log
 
 sleep 1
-read -p "Se van a configurar las alertas por correo electrónico."
-read -p "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
-read -p "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página: https://myaccount.google.com/apppasswords"
+echo "Se van a configurar las alertas por correo electrónico."
+echo "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
+echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página: https://myaccount.google.com/apppasswords"
 while
 	read -p "Introduce una dirección de correo: " email
 	[ -z $email ]
