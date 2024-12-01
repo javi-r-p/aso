@@ -33,12 +33,12 @@ After=network.target
 
 [Service]
 ExecStart=$bin/logd.sh
-Restart=always
 User=root
 
 [Install]
 WantedBy=multi-user.target
 EOF
+
 systemctl daemon-reload >> $log
 systemctl enable logd.service >> $log
 
@@ -80,7 +80,7 @@ touch /etc/msmtprc
 chmod 600 /etc/msmtprc
 chown root:root /etc/msmtprc
 
-cat << EOF | tee /etc/msmtprc
+cat << EOF | tee /etc/msmtprc > /dev/null
 defaults
 auth on
 tls on

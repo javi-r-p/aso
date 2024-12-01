@@ -39,7 +39,7 @@ function enviarCorreo {
 #Monitorización del sistema
 #Uso de la memoria RAM
 function usoRAM {
-    infoMemoria=`free -mh | grep "Mem:" | awk '{print $2, $3, $4}'`
+    infoMemoria=`free -m | grep "Mem:" | awk '{print $2, $3, $4}'`
     read memoriaTotal memoriaUsada memoriaLibre <<< $infoMemoria
     usoRAM=$((100 * memoriaUsada / memoriaTotal))
     procesosRAM=`ps aux --sort=-%mem | head -n 6`
@@ -77,12 +77,16 @@ function usoProc {
         uptime -p >> $log
         sleep 43200
     done
-) & (
-    while true; do
-        comprobarServicios
-        sleep 900
-    done
-) & (
+)
+#&
+#(
+#    while true; do
+#        comprobarServicios
+#        sleep 900
+#    done
+#)
+&
+(
     while true; do
         usoRAM
         usoProc
