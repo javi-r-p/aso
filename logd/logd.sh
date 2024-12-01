@@ -64,7 +64,7 @@ function usoProc {
     echo "---" >> $log
     ps aux --sort=-%cpu | head -n 6 >> $log
 
-    if [[ $usoProc -gt 0.5 ]]; then
+    if [[ $usoProc -gt 0 ]]; then
         enviarCorreo "Uso de procesador" "El uso del procesador está por encima del 90%, los 5 procesos con más consumo son:\n `ps aux --sort=-%cpu | head -n 6`"
     fi
 }
