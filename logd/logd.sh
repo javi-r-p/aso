@@ -58,6 +58,7 @@ function usoRAM {
 #Uso del procesador
 function usoProc {
     usoProc=`grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'`
+    usoProc=$(echo "scale=0; $usoProc/1" | bc)
 
     echo "-----" >> $log
     echo "Uso del procesador: $usoProc%" >> $log
