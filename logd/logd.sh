@@ -22,6 +22,7 @@ log="/var/log/logd.log"
 
 echo "--- --- ---" >> $log
 echo "Servicio iniciado en la fecha y hora $tiempo" >> $log
+echo "--- --- ---" >> $log
 
 #Funciones
 function categorias {
@@ -44,9 +45,8 @@ function usoRAM {
     read memoriaTotal memoriaUsada memoriaLibre <<< $infoMemoria
     usoRAM=$((100 * memoriaUsada / memoriaTotal))
 
-    echo "-----"
-    echo "Uso de la memoria RAM"
-    echo $usoRAM >> $log
+    echo "-----" >> $log
+    echo "Uso de la memoria RAM: $usoRAM%" >> $log
     echo "---" >> $log
     ps aux --sort=-%mem | head -n 6 >> $log
 
@@ -57,10 +57,11 @@ function usoRAM {
 
 #Uso del procesador
 function usoProc {
+    usoProc=`grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'`
 
-    echo "-----"
-    echo "Uso del procesador"
-    echo usoProc=`grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'` >> $log
+    echo "-----" >> $log
+    echo "Uso del procesador: $usoProc%" >> $log
+    grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}' >> $log
     echo "---" >> $log
     ps aux --sort=-%cpu | head -n 6 >> $log
 
