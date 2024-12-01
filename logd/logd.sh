@@ -78,8 +78,8 @@ function usoDiscos {
         volumen=$(echo $disco | awk '{print $1}')
         uso=$(echo $disco | awk '{print $2}' | sed 's/%//')
 
-        echo "Disco: $volumen; uso: $uso%"
-        echo "---"
+        echo "Disco: $volumen; uso: $uso%" >> $log
+        echo "---" >> $log
 
         if [[ $uso -gt 80 ]]; then
             enviarCorreo "El almacenamiento se está agotando" "El disco $volumen tiene un uso del $uso%."
