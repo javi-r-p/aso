@@ -73,12 +73,12 @@ function usoProc {
 #}
 
 #Bucles
-(
-    while true; do
-        uptime -p >> $log
-        sleep 43200
-    done
-)
+#(
+#    while true; do
+#        uptime -p >> $log
+#        sleep 43200
+#    done
+#)
 #&
 #(
 #    while true; do
@@ -86,7 +86,7 @@ function usoProc {
 #        sleep 900
 #    done
 #)
-&
+#&
 (
     while true; do
         usoRAM
