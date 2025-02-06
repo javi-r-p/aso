@@ -1,16 +1,18 @@
 # Programa de gestión de impresoras y trabajos de impresión
 
 # Importación de módulos
-import win32printing, tkinter
+import tkinter, sys
 from tkinter import filedialog
 
 # Detección del sistema operativo
+sistema = sys.platform
+if sistema == "win32":
+    from printmWin import *
+elif sistema == "linux":
+    from printmLinux import *
+imprimir()
 
-
-
-
-
-# Control de errores
+# Control de errores + función de salida
 def errores (codigo):
     if codigo == 0:
         print("Programa finalizado exitosamente (" + str(codigo) + ")")
@@ -18,6 +20,34 @@ def errores (codigo):
     elif codigo == 1:
         print("Ha habido un error general (" + str(codigo) + ")")
         exit(codigo)
+
+# Funciones del programa
+# Opción 1: consultar el listado de impresoras
+def opcion1():
+    print("Has elegido ver el listado de impresoras")
+    listadoImpresoras()
+
+# Opción 2: consultar la cola de impresión
+def opcion2():
+    print("Has elegido ver la cola de impresión")
+    colaImpresion()
+
+    global cancelar
+    cancelar = input("¿Quieres cancelar algún trabajo? s/N ")
+    if not cancelar or cancelar == "N" or cancelar == "n":
+        cancelar = "n"
+        print("No se ha cancelado ningún trabajo.")
+        errores(0)
+    elif cancelar == "s" or cancelar == "S":
+        trabajoACancelar = int(input("Introduce el número del trabajo que quieres cancelar: "))
+        cancelar(trabajoACancelar)
+
+# Opción 3: imprimir uno o varios documentos
+def opcion3():
+    print("Has elegido imprimir un documento")
+    tkinter.Tk().withdraw()
+    archivos = filedialog.askopenfiles(title="Elige uno o varios archivos")
+    print(archivos)
 
 # Menú de opciones
 print("1. Ver listado de impresoras")
@@ -28,25 +58,13 @@ opcion = int(input("Selecciona una opción: "))
 
 # Opción 1: listado de impresoras
 if opcion == 1:
-    print("Has elegido ver el listado de impresoras")
-    print("Listado de impresoras:")
-
-    print("Tu impresora predeterminada es ")
+    opcion1()
 # Opción 2: consultar la cola y / o cancelar trabajos
 elif opcion == 2:
-    print("Has elegido ver la cola de impresión")
-
-    cancelar = input("¿Quieres cancelar algún trabajo? s/N")
-    if not cancelar:
-        cancelar = "n"
-    elif cancelar == "s" or cancelar == "S":
-        trabajoACancelar = int(input("Introduce el número del trabajo que quieres cancelar: "))
+    opcion2()
 # Opción 3: imprimir un documento
 elif opcion == 3:
-    print("Has elegido imprimir un documento")
-    tkinter.Tk().withdraw()
-    archivos = filedialog.askopenfiles(title="Elige uno o varios archivos", filetypes=(("Word", "*.doc"), ("Word", "*.docx"), ("PDF", "*.pdf"), ("Archivos de texto plano", "*.txt")))
-    print(archivos)
+    opcion3()
 # Opción 4: salir del programa
 elif opcion == 4:
     errores(0)
