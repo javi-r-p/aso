@@ -1,16 +1,9 @@
 # Programa de gestión de impresoras y trabajos de impresión
 
-# Importación de módulos
+# Importación de módulos y funciones
 import tkinter, sys
 from tkinter import filedialog
-
-# Detección del sistema operativo
-sistema = sys.platform
-if sistema == "win32":
-    from printmWin import *
-elif sistema == "linux":
-    from printmLinux import *
-imprimir()
+from printmFunctions import *
 
 # Control de errores + función de salida
 def errores (codigo):
