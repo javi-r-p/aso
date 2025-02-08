@@ -38,9 +38,8 @@ def opcion2():
 # Opción 3: imprimir uno o varios documentos
 def opcion3():
     print("Has elegido imprimir un documento")
-    tkinter.Tk().withdraw()
-    archivos = filedialog.askopenfiles(title="Elige uno o varios archivos")
-    print(archivos)
+    archivo = input("Introduce la ruta absoluta del archivo: ")
+    imprimir(archivo)
 
 # Menú de opciones
 print("1. Ver listado de impresoras")

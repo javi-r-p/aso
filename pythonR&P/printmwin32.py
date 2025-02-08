@@ -7,10 +7,13 @@ def listadoImpresoras(todas=True):
     print("Impresoras registradas en el sistema:")
     # Impresoras guardadas
     impresoras = win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
-    i = 1
-    for impresora in impresoras:
-        print(f"{i}. {impresora[2]}")
-        i += 1
+    if not impresoras:
+        print("No se ha encontrado ninguna impresora")
+    else:
+        i = 1
+        for impresora in impresoras:
+            print(f"{i}. {impresora[2]}")
+            i += 1
 
     if todas:
         # Impresoras en la red
