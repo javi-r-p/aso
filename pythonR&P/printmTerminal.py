@@ -3,43 +3,8 @@
 # Importación de módulos y funciones
 import tkinter, sys
 from tkinter import filedialog
-from printmFunctions import *
+from printmwin32 import *
 
-# Control de errores + función de salida
-def errores (codigo):
-    if codigo == 0:
-        print("Programa finalizado exitosamente (" + str(codigo) + ")")
-        exit(codigo)
-    elif codigo == 1:
-        print("Ha habido un error general (" + str(codigo) + ")")
-        exit(codigo)
-
-# Funciones del programa
-# Opción 1: consultar el listado de impresoras
-def opcion1():
-    print("Has elegido ver el listado de impresoras")
-    listadoImpresoras()
-
-# Opción 2: consultar la cola de impresión
-def opcion2():
-    print("Has elegido ver la cola de impresión")
-    colaImpresion()
-
-    global cancelar
-    cancelar = input("¿Quieres cancelar algún trabajo? s/N ")
-    if not cancelar or cancelar == "N" or cancelar == "n":
-        cancelar = "n"
-        print("No se ha cancelado ningún trabajo.")
-        errores(0)
-    elif cancelar == "s" or cancelar == "S":
-        trabajoACancelar = int(input("Introduce el número del trabajo que quieres cancelar: "))
-        cancelar(trabajoACancelar)
-
-# Opción 3: imprimir uno o varios documentos
-def opcion3():
-    print("Has elegido imprimir un documento")
-    archivo = input("Introduce la ruta absoluta del archivo: ")
-    imprimir(archivo)
 
 # Menú de opciones
 print("1. Ver listado de impresoras")
@@ -50,13 +15,28 @@ opcion = int(input("Selecciona una opción: "))
 
 # Opción 1: listado de impresoras
 if opcion == 1:
-    opcion1()
+    print("Has elegido ver el listado de impresoras")
+    impresoras("todas")
 # Opción 2: consultar la cola y / o cancelar trabajos
 elif opcion == 2:
-    opcion2()
+    print("Has elegido ver la cola de impresión")
+    colaImpresion()
 # Opción 3: imprimir un documento
 elif opcion == 3:
-    opcion3()
+    print("Has elegido imprimir un documento")
+    impresoras()
+    # impresora = int(input("\nSelecciona la impresora que quieres utilizar\nSi no seleccionas ninguna, se utilizará la predeterminada: "))
+    archivo = input("Introduce la ruta absoluta del archivo: ")
+    imprimir(archivo)
+    continuar = True
+    while continuar is True:
+        continuar = input("¿Quieres imprimir otro archivo? (s/N) ")
+        if continuar == "s" or continuar == "S":
+            archivo = input("Introduce la ruta absoluta del archivo: ")
+            imprimir(archivo)
+            continuar = True
+        else:
+            continuar: False
 # Opción 4: salir del programa
 elif opcion == 4:
     errores(0)

@@ -1,7 +1,7 @@
 # Instalación de printm: Printing Manager
 # Importación de módulos y mensaje de bienvenida
 print("Instalación de printm")
-import sys, subprocess, requests, os
+import sys, subprocess
 from pathlib import Path
 
 # Detección del sistema operativo, instalación de módulos y definición y creación de la ruta de instalación
@@ -9,7 +9,7 @@ sistema = sys.platform
 if sistema == "win32":
     #bin = "C:/Program Files"
     bin = "C:/Users/javie"
-    #subprocess.run("pip install win32printing requests", shell=True)
+    subprocess.run("pip install win32printing requests pywin32", shell=True)
     print("Tu sistema operativo es Windows.")
 elif sistema == "linux":
     bin = "/usr/lib"
@@ -31,6 +31,7 @@ print("\nPuedes elegir si la aplicación cuenta con interfaz gráfica o no:")
 print("1. CON interfaz gráfica.")
 print("2. SIN interfaz gráfica.")
 opcion = int(input("Elige una opción: "))
+import requests
 if opcion == 1:
     print("Has elegido la versión con interfaz gráfica")
     archivoGeneral = requests.get("https://github.com/javi-r-p/aso/releases/download/alpha/printmGraph.py")

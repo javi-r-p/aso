@@ -1,6 +1,13 @@
 # Funciones de printm para Linux (linux)
-def imprimir():
-    print("Estás en un sistema Linux")
+
+# Control de errores + función de salida
+def errores (codigo):
+    if codigo == 0:
+        print("Programa finalizado exitosamente (" + str(codigo) + ")")
+        exit(codigo)
+    elif codigo == 1:
+        print("Ha habido un error general (" + str(codigo) + ")")
+        exit(codigo)
 
 # Opción 1: listado de impresoras
 def listadoImpresoras():

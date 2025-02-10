@@ -11,3 +11,4 @@ elif opcion == "s" or opcion == "S":
 
 
     print("Se ha desinstalado printm. ¡Hasta pronto!")
+    exit(0)
