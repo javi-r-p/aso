@@ -26,6 +26,14 @@ elif cambiarRuta == "s" or cambiarRuta == "S":
     instalacion = Path(instalacion)
 instalacion.mkdir(exist_ok=True)
 
+# Preguntar por el idioma
+'''
+print("Selecciona un idioma para la instalación:")
+print("1. Inglés")
+print("2. Español")
+idioma = int(input("Introduce un idioma: "))
+'''
+
 # Preguntar si se desea que la aplicación sea gráfica o por terminal
 print("\nPuedes elegir si la aplicación cuenta con interfaz gráfica o no:")
 print("1. CON interfaz gráfica.")

@@ -36,7 +36,7 @@ elif opcion == 3:
             imprimir(archivo)
             continuar = True
         else:
-            continuar: False
+            errores(0)
 # Opción 4: salir del programa
 elif opcion == 4:
     errores(0)
