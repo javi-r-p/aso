@@ -45,7 +45,6 @@ if __name__ == "__main__":
 
 # 3
 import win32print
-import win32api
 
 # Path to the file you want to print
 file_path = "C:\\path\\to\\your\\file.txt"
@@ -70,7 +69,6 @@ print(f"Printing {file_path} on {printer_name}")
 
 # 4
 import win32print
-import win32api
 
 # Path to the file you want to print
 file_path = "C:\\path\\to\\your\\file.txt"
