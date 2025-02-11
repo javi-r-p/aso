@@ -1,8 +1,7 @@
 # Programa de gestión de impresoras y trabajos de impresión
 
 # Importación de módulos y funciones
-import tkinter, sys
-from tkinter import filedialog
+import sys
 from printmwin32 import *
 
 
