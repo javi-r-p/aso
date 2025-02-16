@@ -1,41 +1,45 @@
 # Desinstalación de printm: Printing Manager
-'''
-from pathlib import Path
+# Importación de módulos
+import os, shutil, sys, subprocess
+
+#Detección del sistema
+sistema = sys.platform
+
+# Elección
 print("Desinstalador de printm")
-print("NOTA: los módulos de Python instalados no se eliminarán.")
 opcion = input("¿Quieres desinstalar printm? (s/N)")
+
+# Si no se introduce ninguna letra O se introduce la N, la desinstalación se cancela
 if not opcion or opcion == "n" or opcion == "N":
     print("No se ha desinstalado el programa.")
     exit(0)
+# Si se introduce la letra  S, se comienza el proceso de desinstalación
 elif opcion == "s" or opcion == "S":
-    print("Desinstalando printm.")
-
-
-    print("Se ha desinstalado printm. ¡Hasta pronto!")
-    exit(0)
-'''
-import os
-import shutil
-import sys
-
-def uninstall_app(app_directory):
-    try:
-        # Uninstall the app (add your uninstallation logic here)
-        # For example, removing installed packages:
-        # os.system('pip uninstall -y your_package_name')
-        
-        # Delete the folder
-        shutil.rmtree(app_directory)
-        
-        # Delete this script
-        os.remove(sys.argv[0])
-        
-        print("App uninstalled and folder deleted successfully.")
-    except Exception as e:
-        print(f"Error: {e}")
-
-if __name__ == "__main__":
-    # Provide the path to the app directory
-    app_directory = os.path.dirname(os.path.realpath(__file__))
+    # Elección sobre desinstalar o no los módulos descargados durante la instalación
+    eliminarModulos = input("¿Quieres desinstalar los módulos? (s/N)")
     
-    uninstall_app(app_directory)
+    # Lista de módulos que se van a desinstalar (varía según el sistema)
+    print("Son los siguientes:")
+    if sistema == "win32":
+        print("1. win32printing\n2. pywin32\n3.requests")
+    elif sistema == "linux":
+        print("1. cups\n2. requests")
+    
+    # Eliminar módulos si se introduce S
+    if eliminarModulos == "s" or eliminarModulos == "S":
+        if sistema == "win32":
+            subprocess.run("pip uninstall -y win32printing pywin32 requests",shell=True)
+        elif sistema == "linux":
+            subprocess.run("pip uninstall -y cups requests")
+
+    # Eliminar directorio de instalación y el desinstalador
+    print("Desinstalando printm.")
+    try:
+        # Elimina la carpeta de la aplicación
+        shutil.rmtree(os.path.dirname(os.path.realpath(__file__)))
+        # Elimina el propio desinstaldor
+        os.remove(sys.argv[0])
+
+    # Si no es posible eliminar el directorio o el desinstalador, se muestra el error por pantalla
+    except Exception as error:
+        print(f"Error: {error}")
