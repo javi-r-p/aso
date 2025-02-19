@@ -39,7 +39,19 @@ def impresoras(impresora = "todas"):
 # Opción 2:
 # Consultar la cola de impresión
 def colaImpresion():
-    impresoras()
+    impresora = win32print.GetDefaultPrinter()
+    impresora = win32print.OpenPrinter(impresora)
+    trabajos = win32print.EnumJobs(impresora, 0, -1, 1)
+    if len(trabajos) == 0:
+        print("No hay ningún trabajo en la cola de impresión")
+    else:
+        for trabajo in trabajos:
+            idTrabajo = trabajo.get("JobId", "Desconocido")
+            estado = trabajo.get("Status", "Desconocido")
+            documento = trabajo.get("pDocument", "Desconocido")
+            usuario = trabajo.get("UserName", "Desconocido")
+            print(f"-----\nTrabajo: {idTrabajo}\nEstado: {estado}\nDocumento: {documento}\nUsuario: {usuario}")
+        win32print.ClosePrinter(impresora)
 
 # Cancelar un trabajo
 def cancelar():
