@@ -41,11 +41,8 @@ EOF
 
 systemctl enable logd.service >> $log
 
-echo "Instalando logcheck"
-apt update >> $log 2>> $log
-apt install logcheck -y >> $log 2>> $log
-
 echo "Instalando logger"
+apt update >> $log 2>> $log
 apt install logger -y >> $log 2>> $log
 
 echo "Instalando sysstat"
