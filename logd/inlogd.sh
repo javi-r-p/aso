@@ -43,7 +43,7 @@ systemctl enable logd.service >> $log 2>> $log
 
 echo "Instalando msmtp"
 apt update >> $log 2>> $log
-apt install msmtp -y >> $log 2>> $log
+DEBIAN_FRONTEND=noninteractive apt install msmtp -y >> $log 2>> $log
 
 echo "Instalando logger"
 apt install logger -y >> $log 2>> $log
