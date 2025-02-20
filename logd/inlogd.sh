@@ -12,7 +12,7 @@ if [[ $? -eq 1 ]]; then
 fi
 
 #Directorio de configuración de logd
-mkdir /etc/logd
+mkdir -p /etc/logd
 chmod 755 /etc/logd
 
 echo "Instalación del servicio logd"
@@ -39,10 +39,13 @@ User=root
 WantedBy=multi-user.target
 EOF
 
-systemctl enable logd.service >> $log
+systemctl enable logd.service >> $log 2>> $log
+
+echo "Instalando msmtp"
+apt update >> $log 2>> $log
+apt install msmtp -y >> $log 2>> $log
 
 echo "Instalando logger"
-apt update >> $log 2>> $log
 apt install logger -y >> $log 2>> $log
 
 echo "Instalando sysstat"
