@@ -51,8 +51,8 @@ function usoRAM {
     echo "---" >> $log
     ps aux --sort=-%mem | head -n 6 >> $log
 
-    if [[ $usoRAM -gt 80 ]]; then
-        enviarCorreo "Uso de memoria RAM" "El uso de la RAM está por encima del 85%, los 5 procesos con más consumo son:\n `ps aux --sort=-%mem | head -n 6`"
+    if [[ $usoRAM -gt 75 ]]; then
+        enviarCorreo "Uso de memoria RAM" "El uso de la RAM está por encima del 75%, los 5 procesos con más consumo son:\n `ps aux --sort=-%mem | head -n 6`"
     fi
 }
 
@@ -66,8 +66,8 @@ function usoProc {
     echo "---" >> $log
     ps aux --sort=-%cpu | head -n 6 >> $log
 
-    if [[ $usoProc -gt 90 ]]; then
-        enviarCorreo "Uso de procesador" "El uso del procesador está por encima del 90%, los 5 procesos con más consumo son:\n `ps aux --sort=-%cpu | head -n 6`"
+    if [[ $usoProc -gt 80 ]]; then
+        enviarCorreo "Uso de procesador" "El uso del procesador está por encima del 80%, los 5 procesos con más consumo son:\n `ps aux --sort=-%cpu | head -n 6`"
     fi
 }
 
@@ -116,7 +116,7 @@ function comprobarServicios {
     do
         usoDiscos
         comprobarServicios
-        sleep 900
+        sleep 600
     done
 ) &
 (
