@@ -1,5 +1,8 @@
 # Funciones de printm para Linux (linux)
 
+# Importación de módulos
+import cups
+
 # Control de errores + función de salida
 def errores (codigo):
     if codigo == 0:
@@ -10,10 +13,12 @@ def errores (codigo):
         exit(codigo)
 
 # Opción 1: listado de impresoras
-def listadoImpresoras():
+def impresoras():
     print("Impresoras registradas en el sistema:")
-
-    print("Impresoras encontradas en la red:")
+    conexion = cups.Connection ()
+    impresoras = conexion.getPrinters ()
+    for impresora in impresoras:
+        print(impresoras[impresora] + "; " + ["device-uri"])
 
     print("Tu impresora predeterminada es ")
 

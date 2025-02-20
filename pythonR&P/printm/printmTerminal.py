@@ -2,7 +2,7 @@
 
 # Importación de módulos y funciones
 import sys
-from printmwin32 import *
+from printmlinux import *
 
 
 # Menú de opciones
@@ -15,7 +15,7 @@ opcion = int(input("Selecciona una opción: "))
 # Opción 1: listado de impresoras
 if opcion == 1:
     print("Has elegido ver el listado de impresoras")
-    impresoras("todas")
+    impresoras()
 # Opción 2: consultar la cola y / o cancelar trabajos
 elif opcion == 2:
     print("Has elegido ver la cola de impresión")
