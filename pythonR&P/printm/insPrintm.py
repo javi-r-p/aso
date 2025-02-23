@@ -27,15 +27,15 @@ import requests
 # Descargar archivos
 print("Instalando dependencias...")
 # Archivo general
-archivoGeneral = requests.get("https://github.com/javi-r-p/aso/releases/download/alpha/printm.py")
+archivoGeneral = requests.get("https://github.com/javi-r-p/aso/releases/download/stable/printm.py")
 rutaArchivoGeneral = Path(instalacion,"printm.py")
 rutaArchivoGeneral.write_bytes(archivoGeneral.content)
 # Archivo específico (según sistema operativo)
-archivoEspecifico = requests.get("https://github.com/javi-r-p/aso/releases/download/alpha/printm" + sistema + ".py")
+archivoEspecifico = requests.get("https://github.com/javi-r-p/aso/releases/download/stable/printm" + sistema + ".py")
 rutaArchivoEspecifico = Path(instalacion,"printmFunctions.py")
 rutaArchivoEspecifico.write_bytes(archivoEspecifico.content)
 # Archivo del desinstalador
-archivoDesinstalador = requests.get("https://github.com/javi-r-p/aso/releases/download/alpha/unsPrintm.py")
+archivoDesinstalador = requests.get("https://github.com/javi-r-p/aso/releases/download/stable/unsPrintm.py")
 rutaDesinstalador = Path(instalacion,"uninstall.py")
 rutaDesinstalador.write_bytes(archivoDesinstalador.content)
 
