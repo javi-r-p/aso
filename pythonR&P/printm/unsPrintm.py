@@ -1,6 +1,6 @@
 # Desinstalación de printm: Printing Manager
 # Importación de módulos
-import os, shutil
+import os, shutil, sys
 
 # Elección
 print("Desinstalador de printm")
