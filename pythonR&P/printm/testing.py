@@ -1,3 +1,4 @@
+'''
 # 1
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -96,3 +97,17 @@ try:
     print(f"Printing {file_path} on {printer_name}")
 except Exception as e:
     print(f"Failed to print: {e}")
+'''
+# 5
+import cups
+
+def getPrinter():
+    conn = cups.Connection()
+    printers = conn.getPrinters()
+
+    for printer in printers:
+        print(f"Printer: {printer}")
+        for attribute, value in printers[printer].items():
+            print(f"{attribute}: {value}")
+
+getPrinter()

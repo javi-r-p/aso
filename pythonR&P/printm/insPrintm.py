@@ -10,11 +10,11 @@ sistema = sys.platform
 if sistema == "win32":
     #bin = "C:/Program Files"
     bin = "C:/Users/javie/Temporary"
-    subprocess.run("pip install win32printing requests pywin32", shell=True)
+    subprocess.run("pip install win32printing requests pywin32 tk", shell=True)
     print("Tu sistema operativo es Windows.")
 elif sistema == "linux":
     bin = "/usr/lib"
-    subprocess.run("apt install python3-requests python3-cups -y", shell=True)
+    subprocess.run("apt install python3-requests python3-cups python3-tk -y > /dev/null 2> /dev/null", shell=True)
     print("Tu sistema operativo es Linux.")
 
 # Se establece la ruta por defecto

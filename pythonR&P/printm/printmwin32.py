@@ -14,7 +14,7 @@ def errores (codigo):
         exit(codigo)
 
 # Opción 1: listado de impresoras
-def impresoras(impresora = "todas"):
+def listadoImpresoras(impresora = "todas"):
     print("Impresoras registradas en el sistema:")
     # Buscar si el sistema tiene alguna impresora
     impresoras = win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
