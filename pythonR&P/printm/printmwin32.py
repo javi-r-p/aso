@@ -36,8 +36,7 @@ def listadoImpresoras(impresora = "todas"):
         print(f"Tu impresora predeterminada es {win32print.GetDefaultPrinter()}")
 
 
-# Opción 2:
-# Consultar la cola de impresión
+# Opción 2: consultar la cola de impresión y/o cancelar un trabajo
 def colaImpresion():
     impresora = win32print.GetDefaultPrinter()
     impresora = win32print.OpenPrinter(impresora)
@@ -52,17 +51,6 @@ def colaImpresion():
             usuario = trabajo.get("UserName", "Desconocido")
             print(f"-----\nTrabajo: {idTrabajo}\nEstado: {estado}\nDocumento: {documento}\nUsuario: {usuario}")
         win32print.ClosePrinter(impresora)
-
-# Cancelar un trabajo
-def cancelar():
-    cancelar = input("¿Quieres cancelar algún trabajo? s/N ")
-    if not cancelar or cancelar == "N" or cancelar == "n":
-        cancelar = "n"
-        print("No se ha cancelado ningún trabajo.")
-        errores(0)
-    elif cancelar == "s" or cancelar == "S":
-        trabajoACancelar = int(input("Introduce el número del trabajo que quieres cancelar: "))
-        cancelar(trabajoACancelar)
 
 # Opción 3: imprimir uno o varios documentos
 def imprimir(archivo):

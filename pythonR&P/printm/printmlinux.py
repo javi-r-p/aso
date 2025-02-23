@@ -23,7 +23,7 @@ def listadoImpresoras():
     print("Impresoras registradas en el sistema:")
     estados = {0: "desconocido", 3: "disponible", 4: "ocupada", 5: "no disponible"}
     for impresora in impresoras:
-        print(" ----- ")
+        print("-----")
         print(f"Impresora: {impresora}")
         print(f"URI: {impresoras[impresora].get("device-uri", "URI desconocido")}")
         if impresoras[impresora].get("printer-is-shared"):
@@ -31,34 +31,37 @@ def listadoImpresoras():
         else:
             print("Compartida: no")
         print(f"Estado: {estados[impresoras[impresora].get("printer-state", 0)]}")
-    print(" ----- -----")
+    print("----- -----")
     print(f"Tu impresora predeterminada es {conexion.getDefault()}")
+    print("----- -----")
 
-# Opción 2:
-# Consultar la cola de impresión
+# Opción 2: consultar la cola de impresión y/o cancelar un trabajo
 def colaImpresion():
     trabajos = conexion.getJobs()
     if len(trabajos) == 0:
         print("No hay ningún trabajo en la cola de impresión")
-        errores(0)
+        print("----- -----")
     else:
         for id, trabajo in trabajos.items():
-            print(" ----- ")
+            print("-----")
             print(f"Identificador: {id}")
             print(f"Usuario: {trabajo.get("job-state", "desconocido")}")
             print(f"Nombre: {trabajo.get("title", "desconocido")}")
             print(f"Estado: {trabajo.get("job-state", "desconocido")}")
-            print(f"Impresora: {trabajo.get("printer-uri")}")
+            print(f"Impresora: {trabajo.get("printer-uri", "desconocido")}")
             print(f"Fecha: {trabajo.get("time-at-creation", "desconocido")}")
-
-# Cancelar un trabajo
-def cancelar():
-    print("Cancelar trabajo")
+        print("----- -----")
+        trabajoACancelar = int(input("Introduce el identificador del trabajo que quieres cancelar\nDejar vacío para no cancelar: "))
+        if not trabajoACancelar:
+            print("No se ha cancelado ningún trabajo")
+        else:
+            conexion.cancelJob(trabajoACancelar)
+            print(f"El trabajo con el identificador {trabajoACancelar} se ha cancelado correctamente.")
 
 # Opción 3: imprimir uno o varios documentos
 def imprimir(archivo):
     listadoImpresoras()
-    impresora = input("Introduce el número de la impresora que quieres utilizar.\nDeja el campo vacío para utilizar la predeterminada: ")
+    impresora = input("Introduce el nombre de la impresora que quieres utilizar.\nDeja el campo vacío para utilizar la predeterminada: ")
     if not impresora:
         impresora = conexion.getDefault()
     subprocess.run(["lp", "-d", impresora, archivo])
