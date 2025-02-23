@@ -1,5 +1,6 @@
 # Instalación de printm: Printing Manager
 # Importación de módulos y mensaje de bienvenida
+print("Recuerda abrir este instalador como administrador")
 print("Instalación de printm")
 import sys, subprocess
 from pathlib import Path
@@ -17,11 +18,6 @@ elif sistema == "linux":
 # Establecer la ruta por defecto
 instalacion = Path(bin,"printm/")
 print("El programa se va a instalar en la siguente ruta: " + str(instalacion))
-# Elegir una ruta diferente a la predeterminada (opcional)
-cambiarRuta = input("¿Quieres modificarla? (s/N) ")
-if cambiarRuta == "s" or cambiarRuta == "S":
-    instalacion = input("Introduce la nueva ruta, debe ser absoluta: ")
-    instalacion = Path(instalacion)
 # Crea el directorio de la instalación
 instalacion.mkdir(exist_ok=True)
 
