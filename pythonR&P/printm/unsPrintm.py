@@ -1,37 +1,20 @@
 # Desinstalación de printm: Printing Manager
 # Importación de módulos
-import os, shutil, sys, subprocess
+import os, shutil, sys
 
 #Detección del sistema
 sistema = sys.platform
 
 # Elección
 print("Desinstalador de printm")
-opcion = input("¿Quieres desinstalar printm? (s/N)")
+opcion = input("¿Quieres desinstalar printm? (s/N) ")
 
 # Si no se introduce ninguna letra O se introduce la N, la desinstalación se cancela
 if not opcion or opcion == "n" or opcion == "N":
     print("No se ha desinstalado el programa.")
     exit(0)
 # Si se introduce la letra  S, se comienza el proceso de desinstalación
-elif opcion == "s" or opcion == "S":
-    # Elección sobre desinstalar o no los módulos descargados durante la instalación
-    eliminarModulos = input("¿Quieres desinstalar los módulos? (s/N)")
-    
-    # Lista de módulos que se van a desinstalar (varía según el sistema)
-    print("Son los siguientes:")
-    if sistema == "win32":
-        print("1. win32printing\n2. pywin32\n3.requests")
-    elif sistema == "linux":
-        print("1. cups\n2. requests")
-    
-    # Eliminar módulos si se introduce S
-    if eliminarModulos == "s" or eliminarModulos == "S":
-        if sistema == "win32":
-            subprocess.run("pip uninstall -y win32printing pywin32 requests",shell=True)
-        elif sistema == "linux":
-            subprocess.run("pip uninstall -y cups requests")
-
+else:
     # Eliminar directorio de instalación y el desinstalador
     print("Desinstalando printm.")
     try:
@@ -40,6 +23,6 @@ elif opcion == "s" or opcion == "S":
         # Elimina el propio desinstaldor
         os.remove(sys.argv[0])
 
-    # Si no es posible eliminar el directorio o el desinstalador, se muestra el error por pantalla
+    # Si ocurre un error, mostrarlo por pantalla
     except Exception as error:
         print(f"Error: {error}")
