@@ -2,9 +2,10 @@
 
 # Importación de módulos
 from tkinter import filedialog
-from printmlinux import *
+from printmFunctions import *
 import tkinter
 
+# Función del menú
 def menu():
     salir = False
     while not salir:
@@ -16,6 +17,7 @@ def menu():
             print("4. Salir")
 
             opcion = int(input("Selecciona una opción: "))
+            # Opción 1: listar las impresoras
             if opcion == 1:
                 print("Has elegido ver el listado de impresoras")
                 listadoImpresoras()
@@ -36,7 +38,7 @@ def menu():
                 while continuar:
                     continuar = input("¿Quieres imprimir otro archivo? (s/N) ")
                     if continuar == "s" or continuar == "S":
-                        archivo = filedialog.askopenfilename(title="Selecciona un archivo", filetypes=(("PDF", "*.pdf")))
+                        archivo = filedialog.askopenfilename(title="Selecciona un archivo", filetypes=[("PDF", "*.pdf")])
                         imprimir(archivo)
                         continuar = True
                     else:
