@@ -1,9 +1,6 @@
 # Desinstalación de printm: Printing Manager
 # Importación de módulos
-import os, shutil, sys
-
-#Detección del sistema
-sistema = sys.platform
+import os, shutil
 
 # Elección
 print("Desinstalador de printm")
