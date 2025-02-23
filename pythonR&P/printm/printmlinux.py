@@ -15,12 +15,14 @@ def errores (codigo):
 # Opción 1: listado de impresoras
 def impresoras():
     print("Impresoras registradas en el sistema:")
-    conexion = cups.Connection ()
-    impresoras = conexion.getPrinters ()
+    conexion = cups.Connection()
+    impresoras = conexion.getPrinters()
     for impresora in impresoras:
-        print(impresoras[impresora] + "; " + ["device-uri"])
+        print(f"Impresora: {impresora}")
+        for atributo, valor in impresoras[impresora].items():
+            print(f"{atributo}: {valor}")
 
-    print("Tu impresora predeterminada es ")
+    print(f"Tu impresora predeterminada es {conexion.getDefault()}")
 
 # Opción 2:
 # Consultar la cola de impresión
@@ -33,4 +35,4 @@ def cancelar():
 
 # Opción 3: imprimir uno o varios documentos
 def imprimir():
-    print ("Estás en un sistema Windows")
+    print ("Estás en un sistema Linux")

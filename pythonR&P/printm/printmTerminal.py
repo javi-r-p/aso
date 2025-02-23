@@ -2,7 +2,7 @@
 
 # Importación de módulos y funciones
 import sys
-from printmlinux import *
+from printmwin32 import *
 
 
 # Menú de opciones
