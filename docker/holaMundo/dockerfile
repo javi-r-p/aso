@@ -1,0 +1,5 @@
+FROM ubuntu:24.04
+WORKDIR /srv/python
+COPY holaMundo.py /srv/python
+RUN apt update && apt install python3-full -y
+CMD ["python3", "holaMundo.py"]
