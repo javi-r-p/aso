@@ -155,8 +155,8 @@ function crearUO {
 	echo "objectClass: top" >> $ouLDIF
 	echo "objectClass: organizationalUnit" >> $ouLDIF
 	echo "ou: $nombre" >> $ouLDIF
-	date >> $crearObjetos
-	date >> $erorres
+	date >> $objetos
+	date >> $errores
 	ldapadd -x -D "$adminLDAP" -w "$contrasenia" -f $ouLDIF >> $objetos 2> $errores
 	codError=$?
 	if [ "$codError" = "0" ]; then
@@ -208,7 +208,11 @@ function crearUsuario {
 		echo "cn: $nombreGrupo" >> $gidLDIF
 		ultimoGid=`ldapsearch -xLLL -b $dominio "objectClass=posixGroup" | grep "gidNumber" | tail -n 1`
 		intGid=${ultimoGid/gidNumber: /}
-		intGid=$((intGid+1))
+		if [ -z "$intGid" ]; then
+			intGid=90000
+		else
+			intGid=$(($intGid+1))
+		fi
 		echo "gidNumber: $intGid" >> $gidLDIF
 		date >> $objetos
 		date >> $errores
