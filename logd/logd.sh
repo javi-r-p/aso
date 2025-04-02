@@ -1,32 +1,32 @@
 #!/bin/bash
-#Archivo de bloqueo
+#Lock file
 lock="/var/lock/logd.lock"
 if [ -e $lock ]; then
-    echo "El servicio ya se está ejecutando"
+    echo "Service already running"
     exit 0
 fi
 touch $lock
 trap 'rm -f $lock; exit' EXIT SIGINT SIGTERM
 
-#Fecha y hora
-tiempo=`date +"%d-%m-%Y.%H:%M:%S"`
+#Time and date
+datetime=`date +"%d-%m-%Y.%H:%M:%S"`
 
-#Recoger dirección de correo electrónico y servicios registrados
-correo=`cat /etc/logd/correo`
-servicios=`cat /etc/logd/servicios.conf`
+#Get email address and registered service to supervise
+email=`cat /etc/logd/email`
+services=`cat /etc/logd/services.conf`
 
-#Comprobar si el archivo log existe
+#Check if log file already exists
 if [ -e "/var/log/logd.log" ]; then
     touch /var/log/logd.log
 fi
 log="/var/log/logd.log"
 
 echo "--- --- ---" >> $log
-echo "Servicio iniciado en la fecha y hora $tiempo" >> $log
+echo "Service started at $datetime" >> $log
 echo "--- --- ---" >> $log
 
-#Funciones
-function categorias {
+#Functions
+function categories {
     case "$1" in
         0) logger -p user.emerg "$2";;
         1) logger -p user.alert "$2";;
@@ -35,75 +35,75 @@ function categorias {
         4) logger -p user.warning "$2";;
     esac
 }
-function enviarCorreo {
-    echo -e "Subject: $tiempo - $1\n\n$2" | msmtp $correo
+function sendEmail {
+	datetime=`date +"%d-%m-%Y.%H:%M:%S"`
+    echo -e "Subject: $datetime - $1\n\n$2" | msmtp $email
 }
 
-#Monitorización del sistema
-#Uso de la memoria RAM
-function usoRAM {
-    infoMemoria=`free -m | grep "Mem:" | awk '{print $2, $3, $4}'`
-    read memoriaTotal memoriaUsada memoriaLibre <<< $infoMemoria
-    usoRAM=$((100 * memoriaUsada / memoriaTotal))
+#System monitoring
+#RAM Usage
+function RAMUsage {
+    memInfo=`free -m | grep "Mem:" | awk '{print $2, $3, $4}'`
+    read totalMemory usedMemory freeMemory <<< $memInfo
+    percentage=$((100 * usedMemory / totalMemory))
 
     echo "-----" >> $log
-    echo "Uso de la memoria RAM: $usoRAM%" >> $log
+    echo "RAM usage is at: $percentage%" >> $log
     echo "---" >> $log
     ps aux --sort=-%mem | head -n 6 >> $log
 
-    if [[ $usoRAM -gt 75 ]]; then
-        enviarCorreo "Uso de memoria RAM" "El uso de la RAM está por encima del 75%, los 5 procesos con más consumo son:\n `ps aux --sort=-%mem | head -n 6`"
+    if [[ $RAMUsage -gt 75 ]]; then
+        sendEmail "RAM Usage" "RAM Usage is above 75%, the top 5 consuming processes are:\n `ps aux --sort=-%mem | head -n 6`"
     fi
 }
 
-#Uso del procesador
-function usoProc {
-    usoProc=`grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'`
-    usoProc=$(echo "scale=0; $usoProc/1" | bc)
-
+#Processor usage
+function procUsage {
+	procInfo=`mpstat | awk '{print $12}' | tail -n 1`
+	procInfo=$(echo "scale=0; 100 - $procInfo" | bc)
     echo "-----" >> $log
-    echo "Uso del procesador: $usoProc%" >> $log
+    echo "Processor usage: $procInfo%" >> $log
     echo "---" >> $log
     ps aux --sort=-%cpu | head -n 6 >> $log
 
-    if [[ $usoProc -gt 80 ]]; then
-        enviarCorreo "Uso de procesador" "El uso del procesador está por encima del 80%, los 5 procesos con más consumo son:\n `ps aux --sort=-%cpu | head -n 6`"
+    if [[ $procUsage -gt 80 ]]; then
+        sendEmail "Processor usage" "Processor usage is above 80%, the top 5 consuming processes are:\n `ps aux --sort=-%cpu | head -n 6`"
     fi
 }
 
-#Uso de los discos
-function usoDiscos {
+#Disk usage
+function disksUsage {
     echo "-----" >> $log
-    df -h | grep -E '^/dev/' | awk '{print $1, $5}' | while read disco; do
-        volumen=$(echo $disco | awk '{print $1}')
-        uso=$(echo $disco | awk '{print $2}' | sed 's/%//')
+    df -h | grep -E '^/dev/' | awk '{print $1, $5}' | while read disk; do
+        volume=$(echo $disk | awk '{print $1}')
+        usage=$(echo $disk | awk '{print $2}' | sed 's/%//')
 
-        echo "Disco: $volumen; uso: $uso%" >> $log
+        echo "Volume: $volume; usage: $usage%" >> $log
         echo "---" >> $log
 
-        if [[ $uso -gt 80 ]]; then
-            enviarCorreo "El almacenamiento se está agotando" "El disco $volumen tiene un uso del $uso%."
-            categorias 1 "ALERT: Disk usage over 80%"
+        if [[ $usage -gt 80 ]]; then
+            sendEmail "Storage is running out" "The volume $volume has an usage of $usage%."
+            categories 1 "ALERT: Volume $volume usage over 80%"
         fi
     done
 }
 
-#Comprobar servicios
-function comprobarServicios {
+#Check services
+function checkServices {
     echo "-----" >> $log
-    for servicio in $servicios; do
-        if systemctl is-active --quiet $servicio; then
-            echo "Servicio $servicio en funcionamiento." >> $log
+    for service in $services; do
+        if systemctl is-active --quiet $service; then
+            echo "Service $service is running." >> $log
             echo "---" >> $log
         else
-            echo "El servicio $servicio está detenido." >> $log
-            enviarCorreo "Servicio $servicio" "El servicio $servicio está detenido."
-            categorias 2 "CRITICAL: Service $servicio is not working"
+            echo "Service $service is stopped." >> $log
+            sendEmail "Service $service" "Service $service is stopped."
+            categories 2 "CRITICAL: Service $service is stopped"
         fi
     done
 }
 
-#Bucles
+#Loops
 (
     while true
     do
@@ -114,20 +114,20 @@ function comprobarServicios {
 (
     while true
     do
-        usoDiscos
-        comprobarServicios
+        disksUsage
+        checkServices
         sleep 600
     done
 ) &
 (
     while true
     do
-        usoRAM
-        usoProc
+        RAMUsage
+        procUsage
         sleep 300
     done
 )
 
-#Eliminar el archivo de bloqueo cuando se pare el servicio
+#Delete lock file at service stop signal
 wait
 rm -f $lock
