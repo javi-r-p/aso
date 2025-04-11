@@ -1,34 +1,33 @@
 #!/bin/bash
 if [[ $EUID -ne 0 ]]; then
-	echo "El script debe ser ejecutado como root"
+	echo "This script must be run as root"
 	exit 1
 fi
 
-test -e ./logd.sh
-if [[ $? -eq 1 ]]; then
-	echo "No se ha encontrado el archivo logd, y este es necesario para la instalación del servicio."
-	echo "Asegúrate de que el archivo se encuentra en el mismo directorio que este script."
+if [[ ! -e ./logd.sh ]]; then
+	echo "Couldn't find logd.sh."
+	echo "Make sure the logd.sh file is in the same directory as this installer."
 	exit 1
 fi
 
-#Directorio de configuración de logd
+#Logd conf directory
 mkdir -p /etc/logd
 chmod 755 /etc/logd
 
-echo "Instalación del servicio logd"
+echo "Logd service installation"
 bin="/usr/bin"
 cp ./logd.sh $bin/logd.sh
 chmod +x logd.sh
-log="/tmp/archivoRespuesta.txt"
+log="/tmp/answerFile.txt"
 touch $log
-echo "Archivo de respuesta de la instalación de logd" >> $log
+echo "Logd installation answer file" >> $log
 date +"%d.%m.%Y-%H.%M.%S.%2N" >> $log
-archivoServicio="/etc/systemd/system/logd.service"
-touch $archivoServicio
+serviceFile="/etc/systemd/system/logd.service"
+touch $serviceFile
 
-cat << EOF | tee $archivoServicio > /dev/null
+cat << EOF | tee $serviceFile > /dev/null
 [Unit]
-Description=Servicio de log del sistema
+Description=System logging service
 After=network.target
 
 [Service]
@@ -41,29 +40,29 @@ EOF
 
 systemctl enable logd.service >> $log 2>> $log
 
-echo "Instalando msmtp"
+echo "Installing msmtp"
 apt update >> $log 2>> $log
 DEBIAN_FRONTEND=noninteractive apt install msmtp -y >> $log 2>> $log
 
-echo "Instalando logger"
+echo "Installing logger"
 apt install logger -y >> $log 2>> $log
 
-echo "Instalando sysstat"
+echo "Installing sysstat"
 apt install sysstat -y >> $log 2>> $log
 
-echo "Instalando certificados"
+echo "Installing certificates"
 apt install ca-certificates -y >> $log 2>> $log
 
 echo "-----"
-echo "Se van a configurar las alertas por correo electrónico."
-echo "Para ello, es importante que cuentes con una cuenta de correo electrónico y una clave de aplicación."
-echo "Si aún no tienes una clave de aplicación, puedes generarla en la siguiente página:"
+echo "Alerts through email will be set up."
+echo "It is really important to have an email account and an app key."
+echo "If you don't have any app key, you can create it in the following website:"
 echo "https://myaccount.google.com/apppasswords"
 echo "---"
-read -p "Introduce una dirección de correo: " email
-read -p "Introduce la clave de aplicación: " contrasenia
+read -p "E-Mail account: " email
+read -p "App key: " password
 
-echo "Configurando msmtp"
+echo "Setting up msmtp"
 touch /etc/msmtprc
 chmod 600 /etc/msmtprc
 chown root:root /etc/msmtprc
@@ -81,49 +80,47 @@ host smtp.gmail.com
 port 587
 from $email
 user $email
-password $contrasenia
+password $password
 EOF
 
-#Almacenar dirección de correo en un archivo
-echo $email > /etc/logd/correo
+#Save e-mail address into a file
+echo $email > /etc/logd/email
 
-echo -e "To: $email\nSubject: Correo de prueba.\n\nCorreo de prueba, instalando el servicio logd" | msmtp -t >> $log 2>> $log
+echo -e "To: $email\nSubject: Test E-Mail.\n\nThis is a test e-mail. Logd is being installed. If you received this e-mail, e-mail alerts do work." | msmtp -t >> $log 2>> $log
 if [[ $? -eq 0 ]]; then
-	echo "Correo enviado."
+	echo "E-Mail sent."
 else
-	echo "Ha habido un error al enviar el correo de prueba."
+	echo "There was an error. Couldn't send test e-mail"
 	exit 1
 fi
 
-read -p "Introduce los nombres de los servicios que quieres monitorizar separados por espacios: " servicios
-echo $servicios > /tmp/servicios
-tr ' ' '\n' < "/tmp/servicios" > /etc/logd/servicios.conf
-rm /tmp/servicios
+read -p "Introduce the name of every service you want to supervise: " services
+echo $servicios > /tmp/services
+tr ' ' '\n' < "/tmp/services" > /etc/logd/services.conf
+rm /tmp/services
 
 systemctl start logd.service >> $log
 systemctl status logd.service >> $log
 
-echo "Servicio instalado."
-echo "Si quieres modificar los servicios que quieres monitorizar, modifica el siguiente archivo:"
-echo "/etc/logd/servicios.conf" 
-echo "Cada servicio que introduzcas debe estar en una línea diferente."
+echo "The service was succesfully installed."
+echo "If you wanted to change the supervised services, you must modify this file:"
+echo "/etc/logd/services.conf" 
+echo "Each service must be on a different line."
 echo "-----"
-echo "Creando entrada en crontab"
-echo "*/5 * * * * root /bin/bash /usr/bin/logd.sh" | tee -a /etc/crontab > /dev/null 2> /dev/null
 
 systemctl daemon-reload >> $log
 
 while
-	read -p "¿Quieres ver el archivo de respuesta? (s/n) " opcion
-	[ -z "$opcion" ]
+	read -p "Do you want to view the answer file? (y/n) " option
+	[ -z "$option" ]
 do
-	echo "Selecciona una opción."
+	echo "Select an option."
 done
-if [[ "$opcion" == "s" || "$opcion" == "S" ]]; then
+if [[ "$option" == "S" || "$option" == "Y" ]]; then
 	clear
 	cat $log
 	exit 0
 else
-	echo "¡Hasta pronto!"
+	echo "Bye!"
 	exit 0
 fi
