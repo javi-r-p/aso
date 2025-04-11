@@ -116,7 +116,7 @@ while
 do
 	echo "Select an option."
 done
-if [[ "$option" == "S" || "$option" == "Y" ]]; then
+if [[ "$option" == "y" || "$option" == "Y" ]]; then
 	clear
 	cat $log
 	exit 0
